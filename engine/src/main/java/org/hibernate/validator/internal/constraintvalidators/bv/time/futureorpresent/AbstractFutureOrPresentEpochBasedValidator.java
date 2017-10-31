@@ -6,6 +6,8 @@
  */
 package org.hibernate.validator.internal.constraintvalidators.bv.time.futureorpresent;
 
+import java.time.Clock;
+
 import javax.validation.constraints.FutureOrPresent;
 
 import org.hibernate.validator.internal.constraintvalidators.bv.time.AbstractEpochBasedTimeValidator;
@@ -23,4 +25,8 @@ public abstract class AbstractFutureOrPresentEpochBasedValidator<T> extends Abst
 		return result >= 0;
 	}
 
+	@Override
+	protected Clock getAdjustedReferenceClock(Clock reference) {
+		return Clock.offset( reference, tolerance.negated() );
+	}
 }

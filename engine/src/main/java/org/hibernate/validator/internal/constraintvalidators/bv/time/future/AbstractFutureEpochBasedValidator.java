@@ -6,6 +6,8 @@
  */
 package org.hibernate.validator.internal.constraintvalidators.bv.time.future;
 
+import java.time.Clock;
+
 import javax.validation.constraints.Future;
 
 import org.hibernate.validator.internal.constraintvalidators.bv.time.AbstractEpochBasedTimeValidator;
@@ -23,4 +25,8 @@ public abstract class AbstractFutureEpochBasedValidator<T> extends AbstractEpoch
 		return result > 0;
 	}
 
+	@Override
+	protected Clock getAdjustedReferenceClock(Clock reference) {
+		return Clock.offset( reference, tolerance.negated() );
+	}
 }
