@@ -14,10 +14,12 @@ import java.util.Locale;
 public class LocalizedMessage {
 	private final String message;
 	private final Locale locale;
+	private final int hashCode;
 
 	public LocalizedMessage(String message, Locale locale) {
 		this.message = message;
 		this.locale = locale;
+		this.hashCode = buildHashCode();
 	}
 
 	@Override
@@ -25,16 +27,13 @@ public class LocalizedMessage {
 		if ( this == o ) {
 			return true;
 		}
-		if ( o == null || getClass() != o.getClass() ) {
-			return false;
-		}
 
 		LocalizedMessage that = (LocalizedMessage) o;
 
-		if ( locale != null ? !locale.equals( that.locale ) : that.locale != null ) {
+		if ( !message.equals( that.message ) ) {
 			return false;
 		}
-		if ( message != null ? !message.equals( that.message ) : that.message != null ) {
+		if ( !locale.equals( that.locale ) ) {
 			return false;
 		}
 
@@ -43,8 +42,12 @@ public class LocalizedMessage {
 
 	@Override
 	public int hashCode() {
-		int result = message != null ? message.hashCode() : 0;
-		result = 31 * result + ( locale != null ? locale.hashCode() : 0 );
+		return hashCode;
+	}
+
+	private int buildHashCode() {
+		int result = message.hashCode();
+		result = 31 * result + ( locale.hashCode() );
 		return result;
 	}
 }
