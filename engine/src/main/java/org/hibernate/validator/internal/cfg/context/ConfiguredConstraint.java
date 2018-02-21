@@ -23,7 +23,7 @@ import javax.validation.ValidationException;
 
 import org.hibernate.validator.cfg.AnnotationDef;
 import org.hibernate.validator.cfg.ConstraintDef;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationReflectionInformation;
 import org.hibernate.validator.internal.util.ExecutableHelper;
 import org.hibernate.validator.internal.util.annotation.AnnotationDescriptor;
 import org.hibernate.validator.internal.util.annotation.ConstraintAnnotationDescriptor;
@@ -45,58 +45,58 @@ class ConfiguredConstraint<A extends Annotation> {
 			run( GetDeclaredMethodHandle.andMakeAccessible( MethodHandles.lookup(), AnnotationDef.class, "createAnnotationDescriptor" ) );
 
 	private final ConstraintDef<?, A> constraint;
-	private final ConstraintLocation location;
+	private final ConstraintLocationReflectionInformation location;
 	private final ElementType elementType;
 
-	private ConfiguredConstraint(ConstraintDef<?, A> constraint, ConstraintLocation location, ElementType elementType) {
+	private ConfiguredConstraint(ConstraintDef<?, A> constraint, ConstraintLocationReflectionInformation location, ElementType elementType) {
 		this.constraint = constraint;
 		this.location = location;
 		this.elementType = elementType;
 	}
 
 	static <A extends Annotation> ConfiguredConstraint<A> forType(ConstraintDef<?, A> constraint, Class<?> beanType) {
-		return new ConfiguredConstraint<>( constraint, ConstraintLocation.forClass( beanType ), ElementType.TYPE );
+		return new ConfiguredConstraint<>( constraint, ConstraintLocationReflectionInformation.forClass( beanType ), ElementType.TYPE );
 	}
 
 	static <A extends Annotation> ConfiguredConstraint<A> forProperty(ConstraintDef<?, A> constraint, Member member) {
 		if ( member instanceof Field ) {
 			return new ConfiguredConstraint<>(
-				constraint,
-				ConstraintLocation.forField( (Field) member ),
-				ElementType.FIELD
+					constraint,
+					ConstraintLocationReflectionInformation.forProperty( (Field) member ),
+					ElementType.FIELD
 			);
 		}
 		else {
 			return new ConfiguredConstraint<>(
-				constraint,
-				ConstraintLocation.forGetter( (Method) member ),
-				ElementType.METHOD
+					constraint,
+					ConstraintLocationReflectionInformation.forProperty( (Method) member ),
+					ElementType.METHOD
 			);
 		}
 	}
 
 	public static <A extends Annotation> ConfiguredConstraint<A> forParameter(ConstraintDef<?, A> constraint, Executable executable, int parameterIndex) {
 		return new ConfiguredConstraint<>(
-				constraint, ConstraintLocation.forParameter( executable, parameterIndex ), ExecutableHelper.getElementType( executable )
+				constraint, ConstraintLocationReflectionInformation.forParameter( executable, parameterIndex ), ExecutableHelper.getElementType( executable )
 		);
 	}
 
 	public static <A extends Annotation> ConfiguredConstraint<A> forExecutable(ConstraintDef<?, A> constraint, Executable executable) {
 		return new ConfiguredConstraint<>(
-				constraint, ConstraintLocation.forReturnValue( executable ), ExecutableHelper.getElementType( executable )
+				constraint, ConstraintLocationReflectionInformation.forReturnValue( executable ), ExecutableHelper.getElementType( executable )
 		);
 	}
 
 	public static <A extends Annotation> ConfiguredConstraint<A> forCrossParameter(ConstraintDef<?, A> constraint, Executable executable) {
 		return new ConfiguredConstraint<>(
-				constraint, ConstraintLocation.forCrossParameter( executable ), ExecutableHelper.getElementType( executable )
+				constraint, ConstraintLocationReflectionInformation.forCrossParameter( executable ), ExecutableHelper.getElementType( executable )
 		);
 	}
 
-	public static <A extends Annotation> ConfiguredConstraint<A> forTypeArgument(ConstraintDef<?, A> constraint,ConstraintLocation delegate, TypeVariable<?> typeArgument, Type typeOfAnnotatedElement) {
+	public static <A extends Annotation> ConfiguredConstraint<A> forTypeArgument(ConstraintDef<?, A> constraint, ConstraintLocationReflectionInformation delegate, TypeVariable<?> typeArgument, Type typeOfAnnotatedElement) {
 		return new ConfiguredConstraint<>(
 				constraint,
-				ConstraintLocation.forTypeArgument( delegate, typeArgument, typeOfAnnotatedElement ),
+				ConstraintLocationReflectionInformation.forTypeArgument( delegate, typeArgument, typeOfAnnotatedElement ),
 				ElementType.TYPE_USE
 		);
 	}
@@ -105,7 +105,7 @@ class ConfiguredConstraint<A extends Annotation> {
 		return constraint;
 	}
 
-	public ConstraintLocation getLocation() {
+	public ConstraintLocationReflectionInformation getLocation() {
 		return location;
 	}
 
@@ -122,13 +122,13 @@ class ConfiguredConstraint<A extends Annotation> {
 		}
 	}
 
+	public ElementType getElementType() {
+		return elementType;
+	}
+
 	@Override
 	public String toString() {
 		return constraint.toString();
-	}
-
-	public ElementType getElementType() {
-		return elementType;
 	}
 
 	/**

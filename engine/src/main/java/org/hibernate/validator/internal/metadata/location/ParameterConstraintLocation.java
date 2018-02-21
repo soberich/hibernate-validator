@@ -6,11 +6,11 @@
  */
 package org.hibernate.validator.internal.metadata.location;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
+import org.hibernate.validator.internal.properties.Callable;
+import org.hibernate.validator.internal.properties.Constrainable;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 
@@ -22,13 +22,15 @@ import org.hibernate.validator.internal.util.ReflectionHelper;
  */
 public class ParameterConstraintLocation implements ConstraintLocation {
 
-	private final Executable executable;
+	private final Constrainable executable;
 	private final int index;
+	private final String parameterName;
 	private final Type typeForValidatorResolution;
 
-	ParameterConstraintLocation(Executable executable, int index) {
+	public ParameterConstraintLocation(Callable executable, String parameterName, int index) {
 		this.executable = executable;
 		this.index = index;
+		this.parameterName = parameterName;
 		this.typeForValidatorResolution = ReflectionHelper.boxedType( ReflectionHelper.typeOf( executable, index ) );
 	}
 
@@ -38,7 +40,7 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public Member getMember() {
+	public Constrainable getMember() {
 		return executable;
 	}
 
@@ -53,8 +55,7 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 
 	@Override
 	public void appendTo(ExecutableParameterNameProvider parameterNameProvider, PathImpl path) {
-		String name = parameterNameProvider.getParameterNames( executable ).get( index );
-		path.addParameterNode( name, index );
+		path.addParameterNode( parameterName, index );
 	}
 
 	@Override
@@ -64,8 +65,7 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 
 	@Override
 	public String toString() {
-		return "ParameterConstraintLocation [executable=" + executable + ", index=" + index
-				+ ", typeForValidatorResolution=" + typeForValidatorResolution + "]";
+		return "ParameterConstraintLocation [executable=" + executable + ", index=" + index + "]";
 	}
 
 	@Override

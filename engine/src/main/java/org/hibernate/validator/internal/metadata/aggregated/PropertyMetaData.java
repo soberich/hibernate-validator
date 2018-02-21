@@ -12,9 +12,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayDeque;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -29,16 +27,15 @@ import org.hibernate.validator.HibernateValidatorPermission;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.core.MetaConstraints;
 import org.hibernate.validator.internal.metadata.descriptor.PropertyDescriptorImpl;
 import org.hibernate.validator.internal.metadata.facets.Cascadable;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
-import org.hibernate.validator.internal.metadata.location.TypeArgumentConstraintLocation;
+import org.hibernate.validator.internal.metadata.raw.AbstractConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
+import org.hibernate.validator.internal.properties.Property;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
@@ -151,23 +148,21 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 
 		private static final EnumSet<ConstrainedElementKind> SUPPORTED_ELEMENT_KINDS = EnumSet.of(
 				ConstrainedElementKind.TYPE,
-				ConstrainedElementKind.FIELD,
-				ConstrainedElementKind.METHOD
+				ConstrainedElementKind.PROPERTY
 		);
 
 		private final String propertyName;
-		private final Map<Member, Cascadable.Builder> cascadableBuilders = new HashMap<>();
+		private final Map<Property, Cascadable.Builder> cascadableBuilders = new HashMap<>();
 		private final Type propertyType;
 		private boolean cascadingProperty = false;
-		private Method getterAccessibleMethod;
 
-		public Builder(Class<?> beanClass, ConstrainedField constrainedField, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
+		public Builder(Class<?> beanClass, ConstrainedProperty constrainedProperty, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
 				ValueExtractorManager valueExtractorManager) {
 			super( beanClass, constraintHelper, typeResolutionHelper, valueExtractorManager );
 
-			this.propertyName = constrainedField.getField().getName();
-			this.propertyType = ReflectionHelper.typeOf( constrainedField.getField() );
-			add( constrainedField );
+			this.propertyName = constrainedProperty.getProperty().getName();
+			this.propertyType = constrainedProperty.getProperty().getTypeForValidatorResolution();
+			add( constrainedProperty );
 		}
 
 		public Builder(Class<?> beanClass, ConstrainedType constrainedType, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
@@ -179,23 +174,9 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 			add( constrainedType );
 		}
 
-		public Builder(Class<?> beanClass, ConstrainedExecutable constrainedMethod, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-				ValueExtractorManager valueExtractorManager) {
-			super( beanClass, constraintHelper, typeResolutionHelper, valueExtractorManager );
-
-			this.propertyName = ReflectionHelper.getPropertyName( constrainedMethod.getExecutable() );
-			this.propertyType = ReflectionHelper.typeOf( constrainedMethod.getExecutable() );
-			add( constrainedMethod );
-		}
-
 		@Override
 		public boolean accepts(ConstrainedElement constrainedElement) {
 			if ( !SUPPORTED_ELEMENT_KINDS.contains( constrainedElement.getKind() ) ) {
-				return false;
-			}
-
-			if ( constrainedElement.getKind() == ConstrainedElementKind.METHOD &&
-					!( (ConstrainedExecutable) constrainedElement ).isGetterMethod() ) {
 				return false;
 			}
 
@@ -204,108 +185,29 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 
 		@Override
 		public final void add(ConstrainedElement constrainedElement) {
-			// if we are in the case of a getter and if we have constraints (either on the annotated object itself or on
-			// a container element) or cascaded validation, we want to create an accessible version of the getter only once.
-			if ( constrainedElement.getKind() == ConstrainedElementKind.METHOD && constrainedElement.isConstrained() ) {
-				getterAccessibleMethod = getAccessible( (Method) ( (ConstrainedExecutable) constrainedElement ).getExecutable() );
-			}
-
 			super.add( constrainedElement );
 
 			cascadingProperty = cascadingProperty || constrainedElement.getCascadingMetaDataBuilder().isCascading();
 
 			if ( constrainedElement.getCascadingMetaDataBuilder().isMarkedForCascadingOnAnnotatedObjectOrContainerElements() ||
 					constrainedElement.getCascadingMetaDataBuilder().hasGroupConversionsOnAnnotatedObjectOrContainerElements() ) {
-				if ( constrainedElement.getKind() == ConstrainedElementKind.FIELD ) {
-					Field field = ( (ConstrainedField) constrainedElement ).getField();
-					Cascadable.Builder builder = cascadableBuilders.get( field );
+				Property property = ( (ConstrainedProperty) constrainedElement ).getProperty();
+				Cascadable.Builder builder = cascadableBuilders.get( property );
 
-					if ( builder == null ) {
-						builder = new FieldCascadable.Builder( valueExtractorManager, field, constrainedElement.getCascadingMetaDataBuilder() );
-						cascadableBuilders.put( field, builder );
-					}
-					else {
-						builder.mergeCascadingMetaData( constrainedElement.getCascadingMetaDataBuilder() );
-					}
+				if ( builder == null ) {
+					builder = new PropertyCascadable.Builder( valueExtractorManager, property, constrainedElement.getCascadingMetaDataBuilder() );
+					cascadableBuilders.put( property, builder );
 				}
-				else if ( constrainedElement.getKind() == ConstrainedElementKind.METHOD ) {
-					Method method = (Method) ( (ConstrainedExecutable) constrainedElement ).getExecutable();
-					Cascadable.Builder builder = cascadableBuilders.get( method );
-
-					if ( builder == null ) {
-						builder = new GetterCascadable.Builder( valueExtractorManager, getterAccessibleMethod, constrainedElement.getCascadingMetaDataBuilder() );
-						cascadableBuilders.put( method, builder );
-					}
-					else {
-						builder.mergeCascadingMetaData( constrainedElement.getCascadingMetaDataBuilder() );
-					}
+				else {
+					builder.mergeCascadingMetaData( constrainedElement.getCascadingMetaDataBuilder() );
 				}
 			}
-		}
-
-		@Override
-		protected Set<MetaConstraint<?>> adaptConstraints(ConstrainedElement constrainedElement, Set<MetaConstraint<?>> constraints) {
-			if ( constraints.isEmpty() || constrainedElement.getKind() != ConstrainedElementKind.METHOD ) {
-				return constraints;
-			}
-
-			ConstraintLocation getterConstraintLocation = ConstraintLocation.forGetter( getterAccessibleMethod );
-
-			// convert return value locations into getter locations for usage within this meta-data
-			return constraints.stream()
-					.map( c -> withGetterLocation( getterConstraintLocation, c ) )
-					.collect( Collectors.toSet() );
-		}
-
-		private MetaConstraint<?> withGetterLocation(ConstraintLocation getterConstraintLocation, MetaConstraint<?> constraint) {
-			ConstraintLocation converted = null;
-
-			// fast track if it's a regular constraint
-			if ( !(constraint.getLocation() instanceof TypeArgumentConstraintLocation) ) {
-				converted = getterConstraintLocation;
-			}
-			else {
-				Deque<ConstraintLocation> locationStack = new ArrayDeque<>();
-
-				// 1. collect the hierarchy of delegates up to the root return value location
-				ConstraintLocation current = constraint.getLocation();
-				do {
-					locationStack.addFirst( current );
-					if ( current instanceof TypeArgumentConstraintLocation ) {
-						current = ( (TypeArgumentConstraintLocation) current ).getDelegate();
-					}
-					else {
-						current = null;
-					}
-				}
-				while ( current != null );
-
-				// 2. beginning at the root, transform each location so it references the transformed delegate
-				for ( ConstraintLocation location : locationStack ) {
-					if ( !(location instanceof TypeArgumentConstraintLocation) ) {
-						converted = getterConstraintLocation;
-					}
-					else {
-						converted = ConstraintLocation.forTypeArgument(
-							converted,
-							( (TypeArgumentConstraintLocation) location ).getTypeParameter(),
-							location.getTypeForValidatorResolution()
-						);
-					}
-				}
-			}
-
-			return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraint.getDescriptor(), converted );
 		}
 
 		private String getPropertyName(ConstrainedElement constrainedElement) {
-			if ( constrainedElement.getKind() == ConstrainedElementKind.FIELD ) {
-				return ReflectionHelper.getPropertyName( ( (ConstrainedField) constrainedElement ).getField() );
+			if ( constrainedElement.getKind() == ConstrainedElementKind.PROPERTY ) {
+				return ( (ConstrainedProperty) constrainedElement ).getProperty().getName();
 			}
-			else if ( constrainedElement.getKind() == ConstrainedElementKind.METHOD ) {
-				return ReflectionHelper.getPropertyName( ( (ConstrainedExecutable) constrainedElement ).getExecutable() );
-			}
-
 			return null;
 		}
 

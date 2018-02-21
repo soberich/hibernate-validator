@@ -18,6 +18,8 @@ import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.core.MetaConstraints;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 
 /**
@@ -55,7 +57,7 @@ abstract class ConstraintMappingContextImplBase extends ConstraintContextImplBas
 	}
 
 	protected Set<MetaConstraint<?>> getConstraints(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+			ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		if ( constraints == null ) {
 			return Collections.emptySet();
 		}
@@ -63,22 +65,23 @@ abstract class ConstraintMappingContextImplBase extends ConstraintContextImplBas
 		Set<MetaConstraint<?>> metaConstraints = newHashSet();
 
 		for ( ConfiguredConstraint<?> configuredConstraint : constraints ) {
-			metaConstraints.add( asMetaConstraint( configuredConstraint, constraintHelper, typeResolutionHelper, valueExtractorManager ) );
+			metaConstraints.add( asMetaConstraint( configuredConstraint, constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) );
 		}
 
 		return metaConstraints;
 	}
 
 	private <A extends Annotation> MetaConstraint<A> asMetaConstraint(ConfiguredConstraint<A> config, ConstraintHelper constraintHelper,
-			TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+			TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
+		ConstraintLocation location = config.getLocation().toConstraintLocation( executableParameterNameProvider );
 		ConstraintDescriptorImpl<A> constraintDescriptor = new ConstraintDescriptorImpl<A>(
 				constraintHelper,
-				config.getLocation().getMember(),
+				location.getMember(),
 				config.createAnnotationDescriptor(),
 				config.getElementType(),
 				getConstraintType()
 		);
 
-		return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor, config.getLocation() );
+		return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor, location );
 	}
 }

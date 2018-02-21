@@ -21,6 +21,7 @@ import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.Contracts;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -43,11 +44,12 @@ public class ProgrammaticMetaDataProvider implements MetaDataProvider {
 	public ProgrammaticMetaDataProvider(ConstraintHelper constraintHelper,
 										TypeResolutionHelper typeResolutionHelper,
 										ValueExtractorManager valueExtractorManager,
+										ExecutableParameterNameProvider executableParameterNameProvider,
 										Set<DefaultConstraintMapping> constraintMappings) {
 		Contracts.assertNotNull( constraintMappings );
 
 		configuredBeans = CollectionHelper.toImmutableMap(
-				createBeanConfigurations( constraintMappings, constraintHelper, typeResolutionHelper, valueExtractorManager )
+				createBeanConfigurations( constraintMappings, constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider )
 		);
 
 		assertUniquenessOfConfiguredTypes( constraintMappings );
@@ -69,11 +71,13 @@ public class ProgrammaticMetaDataProvider implements MetaDataProvider {
 	}
 
 	private static Map<String, BeanConfiguration<?>> createBeanConfigurations(Set<DefaultConstraintMapping> mappings, ConstraintHelper constraintHelper,
-			TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+			TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		final Map<String, BeanConfiguration<?>> configuredBeans = new HashMap<>();
 		for ( DefaultConstraintMapping mapping : mappings ) {
-			Set<BeanConfiguration<?>> beanConfigurations = mapping.getBeanConfigurations( constraintHelper, typeResolutionHelper,
-					valueExtractorManager );
+			Set<BeanConfiguration<?>> beanConfigurations = mapping.getBeanConfigurations(
+					constraintHelper, typeResolutionHelper,
+					valueExtractorManager, executableParameterNameProvider
+			);
 
 			for ( BeanConfiguration<?> beanConfiguration : beanConfigurations ) {
 				configuredBeans.put( beanConfiguration.getBeanClass().getName(), beanConfiguration );
@@ -89,7 +93,7 @@ public class ProgrammaticMetaDataProvider implements MetaDataProvider {
 	 * all the given contexts. So the "merge" pulls together the information for all configured elements, but it will never
 	 * merge several configurations for one given element.
 	 *
-	 * @param contexts set of mapping contexts providing annotation processing options to be merged
+	 * @param mappings set of mapping contexts providing annotation processing options to be merged
 	 *
 	 * @return a single annotation processing options object
 	 */

@@ -29,6 +29,7 @@ import javax.validation.groups.Default;
 import javax.validation.metadata.ConstraintDescriptor;
 
 import org.hibernate.validator.constraints.ScriptAssert;
+import org.hibernate.validator.internal.engine.DefaultParameterNameProvider;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
@@ -36,10 +37,13 @@ import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.provider.AnnotationMetaDataProvider;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedPropertyKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.testutil.TestForIssue;
 import org.joda.time.DateMidnight;
@@ -61,6 +65,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 				new ConstraintHelper(),
 				new TypeResolutionHelper(),
 				new ValueExtractorManager( Collections.emptySet() ),
+				new ExecutableParameterNameProvider( new DefaultParameterNameProvider() ),
 				new AnnotationProcessingOptionsImpl()
 		);
 	}
@@ -129,7 +134,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void noGroupConversionOnField() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedField field = findConstrainedField( beanConfiguration, User.class, "mail" );
+		ConstrainedProperty field = findConstrainedProperty( beanConfiguration, User.class, "mail", ConstrainedPropertyKind.FIELD );
 
 		//then
 		assertThat( field.getCascadingMetaDataBuilder().getGroupConversions() ).isEmpty();
@@ -139,7 +144,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void singleGroupConversionOnField() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedField field = findConstrainedField( beanConfiguration, User.class, "phone" );
+		ConstrainedProperty field = findConstrainedProperty( beanConfiguration, User.class, "phone", ConstrainedPropertyKind.FIELD );
 
 		//then
 		Map<Class<?>, Class<?>> expected = newHashMap();
@@ -152,7 +157,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void multipleGroupConversionsOnField() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedField field = findConstrainedField( beanConfiguration, User.class, "address" );
+		ConstrainedProperty field = findConstrainedProperty( beanConfiguration, User.class, "address", ConstrainedPropertyKind.FIELD );
 
 		//then
 		Map<Class<?>, Class<?>> expected = newHashMap();
@@ -171,7 +176,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void noGroupConversionOnMethod() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedExecutable method = findConstrainedMethod( beanConfiguration, User.class, "getMail1" );
+		ConstrainedProperty method = findConstrainedProperty( beanConfiguration, User.class, "getMail1", ConstrainedPropertyKind.GETTER );
 
 		//then
 		assertThat( method.getCascadingMetaDataBuilder().getGroupConversions() ).isEmpty();
@@ -181,7 +186,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void singleGroupConversionOnMethod() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedExecutable method = findConstrainedMethod( beanConfiguration, User.class, "getPhone1" );
+		ConstrainedProperty method = findConstrainedProperty( beanConfiguration, User.class, "getPhone1", ConstrainedPropertyKind.GETTER );
 
 		//then
 		Map<Class<?>, Class<?>> expected = newHashMap();
@@ -194,7 +199,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void multipleGroupConversionsOnMethod() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedExecutable method = findConstrainedMethod( beanConfiguration, User.class, "getAddress1" );
+		ConstrainedProperty method = findConstrainedProperty( beanConfiguration, User.class, "getAddress1", ConstrainedPropertyKind.GETTER );
 
 		//then
 		Map<Class<?>, Class<?>> expected = newHashMap();

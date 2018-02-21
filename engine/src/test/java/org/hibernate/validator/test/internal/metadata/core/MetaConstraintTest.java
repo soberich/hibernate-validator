@@ -20,6 +20,8 @@ import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.core.MetaConstraints;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.properties.Callable;
+import org.hibernate.validator.internal.properties.java.beans.JavaBeansExecutable;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.annotation.ConstraintAnnotationDescriptor;
 import org.hibernate.validator.testutil.TestForIssue;
@@ -34,6 +36,7 @@ public class MetaConstraintTest {
 	private TypeResolutionHelper typeResolutionHelper;
 	private ValueExtractorManager valueExtractorManager;
 	private Method barMethod;
+	private Callable barCallable;
 	private ConstraintAnnotationDescriptor<NotNull> constraintAnnotationDescriptor;
 
 	@BeforeClass
@@ -42,6 +45,7 @@ public class MetaConstraintTest {
 		typeResolutionHelper = new TypeResolutionHelper();
 		valueExtractorManager = new ValueExtractorManager( Collections.emptySet() );
 		barMethod = Foo.class.getMethod( "getBar" );
+		barCallable = new JavaBeansExecutable( barMethod );
 		constraintAnnotationDescriptor = new ConstraintAnnotationDescriptor.Builder<>( barMethod.getAnnotation( NotNull.class ) ).build();
 	}
 
@@ -49,14 +53,14 @@ public class MetaConstraintTest {
 	@TestForIssue(jiraKey = "HV-930")
 	public void two_meta_constraints_for_the_same_constraint_should_be_equal() throws Exception {
 		ConstraintDescriptorImpl<NotNull> constraintDescriptor1 = new ConstraintDescriptorImpl<>(
-				constraintHelper, barMethod, constraintAnnotationDescriptor, METHOD
+				constraintHelper, barCallable, constraintAnnotationDescriptor, METHOD
 		);
 		ConstraintLocation location1 = ConstraintLocation.forClass( Foo.class );
 		MetaConstraint<NotNull> metaConstraint1 = MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor1, location1 );
 
 
 		ConstraintDescriptorImpl<NotNull> constraintDescriptor2 = new ConstraintDescriptorImpl<>(
-				constraintHelper, barMethod, constraintAnnotationDescriptor, METHOD
+				constraintHelper, barCallable, constraintAnnotationDescriptor, METHOD
 		);
 		ConstraintLocation location2 = ConstraintLocation.forClass( Foo.class );
 		MetaConstraint<NotNull> metaConstraint2 = MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor2, location2 );

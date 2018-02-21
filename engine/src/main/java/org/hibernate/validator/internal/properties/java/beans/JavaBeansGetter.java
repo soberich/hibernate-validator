@@ -4,7 +4,7 @@
  * License: Apache License, Version 2.0
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
-package org.hibernate.validator.internal.metadata.location;
+package org.hibernate.validator.internal.properties.java.beans;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
@@ -13,43 +13,33 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import org.hibernate.validator.HibernateValidatorPermission;
-import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
+import org.hibernate.validator.internal.properties.Callable;
+import org.hibernate.validator.internal.properties.Property;
 import org.hibernate.validator.internal.util.ReflectionHelper;
-import org.hibernate.validator.internal.util.StringHelper;
 import org.hibernate.validator.internal.util.privilegedactions.GetDeclaredMethod;
 
 /**
- * Getter method constraint location.
- *
- * @author Hardy Ferentschik
- * @author Gunnar Morling
+ * @author Marko Bekhta
  */
-public class GetterConstraintLocation implements ConstraintLocation {
+public class JavaBeansGetter implements Property, Callable {
 
-	/**
-	 * The method the constraint was defined on.
-	 */
+	private static final Class[] PARAMETER_TYPES = new Class[0];
+
 	private final Method method;
-
-	private final Method accessibleMethod;
-
-	/**
-	 * The property name associated with the method.
-	 */
-	private final String propertyName;
-
-	/**
-	 * The type to be used for validator resolution for constraints at this location.
-	 */
+	private final String name;
+	private final Type type;
 	private final Type typeForValidatorResolution;
 
+	public JavaBeansGetter(Method method) {
+		this.method = getAccessible( method );
+		this.name = ReflectionHelper.getPropertyName( method );
+		this.type = ReflectionHelper.typeOf( method );
+		this.typeForValidatorResolution = ReflectionHelper.boxedType( type );
+	}
 
-	GetterConstraintLocation(Method method) {
-		this.method = method;
-		this.accessibleMethod = getAccessible( method );
-		this.propertyName = ReflectionHelper.getPropertyName( method );
-		this.typeForValidatorResolution = ReflectionHelper.boxedType( ReflectionHelper.typeOf( method ) );
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	@Override
@@ -58,33 +48,45 @@ public class GetterConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public Method getMember() {
-		return method;
-	}
-
-	public String getPropertyName() {
-		return propertyName;
-	}
-
-	@Override
 	public Type getTypeForValidatorResolution() {
 		return typeForValidatorResolution;
 	}
 
 	@Override
-	public void appendTo(ExecutableParameterNameProvider parameterNameProvider, PathImpl path) {
-		path.addPropertyNode( propertyName );
+	public Type getType() {
+		return type;
 	}
 
 	@Override
-	public Object getValue(Object parent) {
-		return ReflectionHelper.getValue( accessibleMethod, parent );
+	public Object getValueFrom(Object bean) {
+		return ReflectionHelper.getValue( method, bean );
 	}
 
 	@Override
-	public String toString() {
-		return "GetterConstraintLocation [method=" + StringHelper.toShortString( method ) + ", typeForValidatorResolution="
-				+ StringHelper.toShortString( typeForValidatorResolution ) + "]";
+	public Object getReturnValueFrom(Object bean) {
+		return getValueFrom( bean );
+	}
+
+	@Override
+	public boolean hasReturnValue() {
+		// getters should always have a return value
+		return true;
+	}
+
+	@Override
+	public boolean hasParameters() {
+		// getters should never have parameters
+		return false;
+	}
+
+	@Override
+	public Class<?>[] getParameterTypes() {
+		return PARAMETER_TYPES;
+	}
+
+	@Override
+	public Type[] getGenericParameterTypes() {
+		return PARAMETER_TYPES;
 	}
 
 	@Override
@@ -92,26 +94,30 @@ public class GetterConstraintLocation implements ConstraintLocation {
 		if ( this == o ) {
 			return true;
 		}
-		if ( o == null || getClass() != o.getClass() ) {
+		if ( o == null || this.getClass() != o.getClass() ) {
 			return false;
 		}
 
-		GetterConstraintLocation that = (GetterConstraintLocation) o;
+		JavaBeansGetter that = (JavaBeansGetter) o;
 
-		if ( method != null ? !method.equals( that.method ) : that.method != null ) {
+		if ( !this.method.equals( that.method ) ) {
 			return false;
 		}
-		if ( !typeForValidatorResolution.equals( that.typeForValidatorResolution ) ) {
+		if ( !this.name.equals( that.name ) ) {
 			return false;
 		}
-
-		return true;
+		if ( !this.type.equals( that.type ) ) {
+			return false;
+		}
+		return this.typeForValidatorResolution.equals( that.typeForValidatorResolution );
 	}
 
 	@Override
 	public int hashCode() {
-		int result = method.hashCode();
-		result = 31 * result + typeForValidatorResolution.hashCode();
+		int result = this.method.hashCode();
+		result = 31 * result + this.name.hashCode();
+		result = 31 * result + this.type.hashCode();
+		result = 31 * result + this.typeForValidatorResolution.hashCode();
 		return result;
 	}
 

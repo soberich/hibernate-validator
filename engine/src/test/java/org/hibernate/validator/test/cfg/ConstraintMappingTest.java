@@ -50,13 +50,17 @@ import org.hibernate.validator.cfg.defs.SizeDef;
 import org.hibernate.validator.constraints.Range;
 import org.hibernate.validator.group.GroupSequenceProvider;
 import org.hibernate.validator.internal.cfg.context.DefaultConstraintMapping;
+import org.hibernate.validator.internal.engine.DefaultParameterNameProvider;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.raw.AbstractConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedPropertyKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 import org.hibernate.validator.testutils.ValidatorUtil;
@@ -99,8 +103,8 @@ public class ConstraintMappingTest {
 
 		BeanConfiguration<Marathon> beanConfiguration = getBeanConfiguration( Marathon.class );
 		assertNotNull( beanConfiguration );
-		assertEquals( getConstrainedField( beanConfiguration, "numberOfHelpers" ).getConstraints().size(), 1 );
-		assertEquals( getConstrainedExecutable( beanConfiguration, "getName" ).getConstraints().size(), 1 );
+		assertEquals( getConstrainedProperty( beanConfiguration, "numberOfHelpers", ConstrainedPropertyKind.FIELD ).getConstraints().size(), 1 );
+		assertEquals( getConstrainedProperty( beanConfiguration, "name", ConstrainedPropertyKind.GETTER ).getConstraints().size(), 1 );
 	}
 
 	@Test
@@ -113,8 +117,8 @@ public class ConstraintMappingTest {
 
 		BeanConfiguration<Marathon> beanConfiguration = getBeanConfiguration( Marathon.class );
 		assertNotNull( beanConfiguration );
-		assertEquals( getConstrainedField( beanConfiguration, "numberOfHelpers" ).getConstraints().size(), 1 );
-		assertEquals( getConstrainedExecutable( beanConfiguration, "getName" ).getConstraints().size(), 1 );
+		assertEquals( getConstrainedProperty( beanConfiguration, "numberOfHelpers", ConstrainedPropertyKind.FIELD ).getConstraints().size(), 1 );
+		assertEquals( getConstrainedProperty( beanConfiguration, "name", ConstrainedPropertyKind.GETTER ).getConstraints().size(), 1 );
 	}
 
 	@Test
@@ -126,7 +130,7 @@ public class ConstraintMappingTest {
 
 		BeanConfiguration<Marathon> beanConfiguration = getBeanConfiguration( Marathon.class );
 		assertNotNull( beanConfiguration );
-		assertEquals( getConstrainedField( beanConfiguration, "numberOfHelpers" ).getConstraints().size(), 2 );
+		assertEquals( getConstrainedProperty( beanConfiguration, "numberOfHelpers", ConstrainedPropertyKind.FIELD ).getConstraints().size(), 2 );
 	}
 
 	@Test
@@ -539,7 +543,8 @@ public class ConstraintMappingTest {
 		Set<BeanConfiguration<?>> beanConfigurations = mapping.getBeanConfigurations(
 				new ConstraintHelper(),
 				new TypeResolutionHelper(),
-				new ValueExtractorManager( Collections.emptySet() )
+				new ValueExtractorManager( Collections.emptySet() ),
+				new ExecutableParameterNameProvider( new DefaultParameterNameProvider() )
 		);
 
 		for ( BeanConfiguration<?> beanConfiguration : beanConfigurations ) {
@@ -553,22 +558,12 @@ public class ConstraintMappingTest {
 		return null;
 	}
 
-	private ConstrainedField getConstrainedField(BeanConfiguration<?> beanConfiguration, String fieldName) {
+	private ConstrainedProperty getConstrainedProperty(BeanConfiguration<?> beanConfiguration, String propertyName, ConstrainedPropertyKind kind) {
 		for ( ConstrainedElement constrainedElement : beanConfiguration.getConstrainedElements() ) {
-			if ( constrainedElement.getKind() == ConstrainedElementKind.FIELD &&
-					( (ConstrainedField) constrainedElement ).getField().getName().equals( fieldName ) ) {
-				return (ConstrainedField) constrainedElement;
-			}
-		}
-
-		return null;
-	}
-
-	private ConstrainedExecutable getConstrainedExecutable(BeanConfiguration<?> beanConfiguration, String executableName) {
-		for ( ConstrainedElement constrainedElement : beanConfiguration.getConstrainedElements() ) {
-			if ( constrainedElement.getKind() == ConstrainedElementKind.METHOD &&
-					( (ConstrainedExecutable) constrainedElement ).getExecutable().getName().equals( executableName ) ) {
-				return (ConstrainedExecutable) constrainedElement;
+			if ( constrainedElement.getKind() == ConstrainedElementKind.PROPERTY
+					&& ( (ConstrainedProperty) constrainedElement ).getConstrainedPropertyKind() == kind
+					&& ( (ConstrainedProperty) constrainedElement ).getProperty().getName().equals( propertyName ) ) {
+				return (ConstrainedProperty) constrainedElement;
 			}
 		}
 

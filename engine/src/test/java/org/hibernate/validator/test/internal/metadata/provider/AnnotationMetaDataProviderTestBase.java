@@ -9,23 +9,30 @@ package org.hibernate.validator.test.internal.metadata.provider;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedPropertyKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
+import org.hibernate.validator.internal.util.ReflectionHelper;
 
 /**
  * @author Gunnar Morling
  */
 public abstract class AnnotationMetaDataProviderTestBase {
 
-	protected <T> ConstrainedField findConstrainedField(BeanConfiguration<T> beanConfiguration,
-														Class<? super T> clazz, String fieldName) throws Exception {
+	protected <T> ConstrainedProperty findConstrainedProperty(BeanConfiguration<T> beanConfiguration,
+			Class<? super T> clazz, String propertyName, ConstrainedPropertyKind constrainedPropertyKind,
+			Class<?>... parameterTypes) throws Exception {
 
-		return (ConstrainedField) findConstrainedElement( beanConfiguration, clazz.getDeclaredField( fieldName ) );
+		return (ConstrainedProperty) findConstrainedElement( beanConfiguration,
+				constrainedPropertyKind == ConstrainedPropertyKind.FIELD
+				? clazz.getDeclaredField( propertyName )
+				: clazz.getMethod( propertyName, parameterTypes ) );
 	}
 
 	protected <T> ConstrainedExecutable findConstrainedMethod(BeanConfiguration<T> beanConfiguration,
@@ -56,8 +63,7 @@ public abstract class AnnotationMetaDataProviderTestBase {
 		throw new RuntimeException( "Found no constrained element for type " + type );
 	}
 
-	protected ConstrainedElement findConstrainedElement(BeanConfiguration<?> beanConfiguration,
-														Member member) {
+	protected ConstrainedElement findConstrainedElement(BeanConfiguration<?> beanConfiguration, Member member) {
 
 		for ( ConstrainedElement constrainedElement : beanConfiguration.getConstrainedElements() ) {
 			if ( member instanceof Executable && constrainedElement instanceof ConstrainedExecutable ) {
@@ -65,9 +71,21 @@ public abstract class AnnotationMetaDataProviderTestBase {
 					return constrainedElement;
 				}
 			}
-			else if ( member instanceof Field && constrainedElement instanceof ConstrainedField ) {
-				if ( member.equals( ( (ConstrainedField) constrainedElement ).getField() ) ) {
-					return constrainedElement;
+			else if ( constrainedElement instanceof ConstrainedProperty ) {
+				ConstrainedProperty property = (ConstrainedProperty) constrainedElement;
+				switch ( property.getConstrainedPropertyKind() ) {
+					case FIELD:
+						if ( member instanceof Field && property.getProperty().getName().equals( member.getName() ) ) {
+							return constrainedElement;
+						}
+						break;
+					case GETTER:
+						if ( member instanceof Method && property.getProperty().getName().equals( ReflectionHelper.getPropertyName( member ) ) ) {
+							return constrainedElement;
+						}
+						break;
+						default:
+							throw new IllegalStateException( "Unknown property kind" );
 				}
 			}
 		}

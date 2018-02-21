@@ -32,7 +32,9 @@ import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
+import org.hibernate.validator.internal.properties.java.beans.JavaBeansExecutable;
 import org.hibernate.validator.internal.util.ExecutableHelper;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -56,18 +58,21 @@ class ConstrainedExecutableBuilder {
 
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
+	private final ExecutableParameterNameProvider executableParameterNameProvider;
 	private final ClassLoadingHelper classLoadingHelper;
 	private final MetaConstraintBuilder metaConstraintBuilder;
 	private final GroupConversionBuilder groupConversionBuilder;
 	private final ConstrainedParameterBuilder constrainedParameterBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 
-	ConstrainedExecutableBuilder(ClassLoadingHelper classLoadingHelper, MetaConstraintBuilder metaConstraintBuilder,
+	ConstrainedExecutableBuilder(ExecutableParameterNameProvider executableParameterNameProvider, ClassLoadingHelper classLoadingHelper, MetaConstraintBuilder metaConstraintBuilder,
 			GroupConversionBuilder groupConversionBuilder, AnnotationProcessingOptionsImpl annotationProcessingOptions) {
+		this.executableParameterNameProvider = executableParameterNameProvider;
 		this.classLoadingHelper = classLoadingHelper;
 		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.groupConversionBuilder = groupConversionBuilder;
 		this.constrainedParameterBuilder = new ConstrainedParameterBuilder(
+				executableParameterNameProvider,
 				metaConstraintBuilder,
 				groupConversionBuilder,
 				annotationProcessingOptions
@@ -195,16 +200,19 @@ class ConstrainedExecutableBuilder {
 															 CrossParameterType crossParameterType,
 															 ReturnValueType returnValueType,
 															 Executable executable) {
+		JavaBeansExecutable javaBeansExecutable = new JavaBeansExecutable( executable );
 		List<ConstrainedParameter> parameterMetaData = constrainedParameterBuilder.buildConstrainedParameters(
 				parameterTypeList,
 				executable,
+				javaBeansExecutable,
 				defaultPackage
 		);
 
 		Set<MetaConstraint<?>> crossParameterConstraints = parseCrossParameterConstraints(
-				defaultPackage,
 				crossParameterType,
-				executable
+				executable,
+				javaBeansExecutable,
+				defaultPackage
 		);
 
 		// parse the return value
@@ -213,6 +221,7 @@ class ConstrainedExecutableBuilder {
 		CascadingMetaDataBuilder cascadingMetaDataBuilder = parseReturnValueType(
 				returnValueType,
 				executable,
+				javaBeansExecutable,
 				returnValueConstraints,
 				returnValueTypeArgumentConstraints,
 				defaultPackage
@@ -229,16 +238,17 @@ class ConstrainedExecutableBuilder {
 		);
 	}
 
-	private Set<MetaConstraint<?>> parseCrossParameterConstraints(String defaultPackage,
-																		 CrossParameterType crossParameterType,
-																		 Executable executable) {
+	private Set<MetaConstraint<?>> parseCrossParameterConstraints(CrossParameterType crossParameterType,
+			Executable executable,
+			JavaBeansExecutable javaBeansExecutable,
+			String defaultPackage) {
 
 		Set<MetaConstraint<?>> crossParameterConstraints = newHashSet();
 		if ( crossParameterType == null ) {
 			return crossParameterConstraints;
 		}
 
-		ConstraintLocation constraintLocation = ConstraintLocation.forCrossParameter( executable );
+		ConstraintLocation constraintLocation = ConstraintLocation.forCrossParameter( javaBeansExecutable );
 
 		for ( ConstraintType constraintType : crossParameterType.getConstraint() ) {
 			MetaConstraint<?> metaConstraint = metaConstraintBuilder.buildMetaConstraint(
@@ -263,15 +273,17 @@ class ConstrainedExecutableBuilder {
 	}
 
 	private CascadingMetaDataBuilder parseReturnValueType(ReturnValueType returnValueType,
-												Executable executable,
-												Set<MetaConstraint<?>> returnValueConstraints,
-												Set<MetaConstraint<?>> returnValueTypeArgumentConstraints,
-												String defaultPackage) {
+			Executable executable,
+			JavaBeansExecutable javaBeansExecutable,
+			Set<MetaConstraint<?>> returnValueConstraints,
+			Set<MetaConstraint<?>> returnValueTypeArgumentConstraints,
+			String defaultPackage) {
+
 		if ( returnValueType == null ) {
 			return CascadingMetaDataBuilder.nonCascading();
 		}
 
-		ConstraintLocation constraintLocation = ConstraintLocation.forReturnValue( executable );
+		ConstraintLocation constraintLocation = ConstraintLocation.forReturnValue( javaBeansExecutable );
 		for ( ConstraintType constraint : returnValueType.getConstraint() ) {
 			MetaConstraint<?> metaConstraint = metaConstraintBuilder.buildMetaConstraint(
 					constraintLocation,
@@ -299,7 +311,8 @@ class ConstrainedExecutableBuilder {
 		}
 
 		return getCascadingMetaDataForReturnValue( containerElementTypeConfiguration.getTypeParametersCascadingMetaData(), executable, returnValueType,
-				defaultPackage );
+				defaultPackage
+		);
 	}
 
 	private List<Class<?>> createParameterTypes(List<ParameterType> parameterList,

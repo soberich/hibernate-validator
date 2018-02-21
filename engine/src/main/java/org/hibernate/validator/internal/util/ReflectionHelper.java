@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.validator.internal.properties.Callable;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
 
@@ -213,6 +214,22 @@ public final class ReflectionHelper {
 	 * @return The erased type.
 	 */
 	public static Type typeOf(Executable executable, int parameterIndex) {
+		Type[] genericParameterTypes = executable.getGenericParameterTypes();
+
+		// getGenericParameterTypes() doesn't return synthetic parameters; in this case fall back to getParameterTypes()
+		if ( parameterIndex >= genericParameterTypes.length ) {
+			genericParameterTypes = executable.getParameterTypes();
+		}
+
+		Type type = genericParameterTypes[parameterIndex];
+
+		if ( type instanceof TypeVariable ) {
+			type = TypeHelper.getErasedType( type );
+		}
+		return type;
+	}
+
+	public static Type typeOf(Callable executable, int parameterIndex) {
 		Type[] genericParameterTypes = executable.getGenericParameterTypes();
 
 		// getGenericParameterTypes() doesn't return synthetic parameters; in this case fall back to getParameterTypes()

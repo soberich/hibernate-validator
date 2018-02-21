@@ -7,51 +7,46 @@
 package org.hibernate.validator.internal.metadata.aggregated;
 
 import java.lang.annotation.ElementType;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.facets.Cascadable;
-import org.hibernate.validator.internal.util.ReflectionHelper;
+import org.hibernate.validator.internal.properties.Property;
 
 /**
- * A {@link Cascadable} backed by a property getter of a Java bean.
+ * A {@link Cascadable} backed by a Java bean's property (either field or getter method).
  *
- * @author Gunnar Morling
+ * @author Marko Bekhta
  */
-public class GetterCascadable implements Cascadable {
+public class PropertyCascadable implements Cascadable {
 
-	private final Method method;
-	private final String propertyName;
-	private final Type cascadableType;
+	private final Property property;
 	private final CascadingMetaData cascadingMetaData;
 
-	GetterCascadable(Method method, CascadingMetaData cascadingMetaData) {
-		this.method = method;
-		this.propertyName = ReflectionHelper.getPropertyName( method );
-		this.cascadableType = ReflectionHelper.typeOf( method );
+	PropertyCascadable(Property property, CascadingMetaData cascadingMetaData) {
+		this.property = property;
 		this.cascadingMetaData = cascadingMetaData;
 	}
 
 	@Override
 	public ElementType getElementType() {
-		return ElementType.METHOD;
+		return ElementType.FIELD;
 	}
 
 	@Override
 	public Type getCascadableType() {
-		return cascadableType;
+		return property.getType();
 	}
 
 	@Override
 	public Object getValue(Object parent) {
-		return ReflectionHelper.getValue( method, parent );
+		return property.getValueFrom( parent );
 	}
 
 	@Override
 	public void appendTo(PathImpl path) {
-		path.addPropertyNode( propertyName );
+		path.addPropertyNode( property.getName() );
 	}
 
 	@Override
@@ -62,13 +57,12 @@ public class GetterCascadable implements Cascadable {
 	public static class Builder implements Cascadable.Builder {
 
 		private final ValueExtractorManager valueExtractorManager;
-		private final Method method;
+		private final Property property;
 		private CascadingMetaDataBuilder cascadingMetaDataBuilder;
 
-		// Note: the method passed here has to be accessible: the caller is responsible for that
-		public Builder(ValueExtractorManager valueExtractorManager, Method method, CascadingMetaDataBuilder cascadingMetaDataBuilder) {
+		public Builder(ValueExtractorManager valueExtractorManager, Property property, CascadingMetaDataBuilder cascadingMetaDataBuilder) {
 			this.valueExtractorManager = valueExtractorManager;
-			this.method = method;
+			this.property = property;
 			this.cascadingMetaDataBuilder = cascadingMetaDataBuilder;
 		}
 
@@ -78,8 +72,9 @@ public class GetterCascadable implements Cascadable {
 		}
 
 		@Override
-		public GetterCascadable build() {
-			return new GetterCascadable( method, cascadingMetaDataBuilder.build( valueExtractorManager, method ) );
+		public PropertyCascadable build() {
+			return new PropertyCascadable( property, cascadingMetaDataBuilder.build( valueExtractorManager, property ) );
 		}
+
 	}
 }

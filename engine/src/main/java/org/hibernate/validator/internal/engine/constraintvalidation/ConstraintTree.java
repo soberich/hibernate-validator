@@ -114,7 +114,7 @@ public class ConstraintTree<A extends Annotation> {
 			// find the right constraint validator
 			ConstraintValidator<A, ?> validator = getInitializedConstraintValidator( validationContext, valueContext );
 
-			// create a constraint validator context
+			// create a constraint validator context`
 			ConstraintValidatorContextImpl constraintValidatorContext = new ConstraintValidatorContextImpl(
 					validationContext.getParameterNames(),
 					validationContext.getClockProvider(),

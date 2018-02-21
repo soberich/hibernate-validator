@@ -20,11 +20,13 @@ import org.hibernate.validator.cfg.context.PropertyConstraintMappingContext;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationReflectionInformation;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.properties.java.beans.JavaBeansField;
+import org.hibernate.validator.internal.properties.java.beans.JavaBeansGetter;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 
@@ -43,17 +45,17 @@ final class PropertyConstraintMappingContextImpl
 
 	// either Field or Method
 	private final Member member;
-	private final ConstraintLocation location;
+	private final ConstraintLocationReflectionInformation location;
 
 	PropertyConstraintMappingContextImpl(TypeConstraintMappingContextImpl<?> typeContext, Member member) {
 		super( typeContext.getConstraintMapping(), ReflectionHelper.typeOf( member ) );
 		this.typeContext = typeContext;
 		this.member = member;
 		if ( member instanceof Field ) {
-			this.location = ConstraintLocation.forField( (Field) member );
+			this.location = ConstraintLocationReflectionInformation.forProperty( (Field) member );
 		}
 		else {
-			this.location = ConstraintLocation.forGetter( (Method) member );
+			this.location = ConstraintLocationReflectionInformation.forProperty( (Method) member );
 		}
 	}
 
@@ -73,7 +75,7 @@ final class PropertyConstraintMappingContextImpl
 		}
 		else {
 			super.addConstraint(
-					ConfiguredConstraint.forExecutable(
+					ConfiguredConstraint.forProperty(
 							definition, (Method) member
 					)
 			);
@@ -117,22 +119,22 @@ final class PropertyConstraintMappingContextImpl
 		return super.containerElement( this, typeContext, location, index, nestedIndexes );
 	}
 
-	ConstrainedElement build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+	ConstrainedElement build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		if ( member instanceof Field ) {
-			return new ConstrainedField(
+			return ConstrainedProperty.forField(
 					ConfigurationSource.API,
-					(Field) member,
-					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
-					getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
+					new JavaBeansField( (Field) member ),
+					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+					getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
 					getCascadingMetaDataBuilder()
 			);
 		}
 		else {
-			return new ConstrainedExecutable(
+			return ConstrainedProperty.forGetter(
 					ConfigurationSource.API,
-					(Executable) member,
-					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
-					getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
+					new JavaBeansGetter( (Method) member ),
+					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+					getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
 					getCascadingMetaDataBuilder()
 			);
 		}

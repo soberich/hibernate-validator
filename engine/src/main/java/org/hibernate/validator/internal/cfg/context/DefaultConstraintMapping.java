@@ -25,6 +25,7 @@ import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOption
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.util.Contracts;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -83,15 +84,16 @@ public class DefaultConstraintMapping implements ConstraintMapping {
 	 * @param constraintHelper constraint helper required for building constraint descriptors
 	 * @param typeResolutionHelper type resolution helper
 	 * @param valueExtractorManager the {@link ValueExtractor} manager
+	 * @param executableParameterNameProvider the parameter name provider
 	 *
 	 * @return a set of {@link BeanConfiguration}s with an element for each type configured through this mapping
 	 */
 	public Set<BeanConfiguration<?>> getBeanConfigurations(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+			ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		Set<BeanConfiguration<?>> configurations = newHashSet();
 
 		for ( TypeConstraintMappingContextImpl<?> typeContext : typeContexts ) {
-			configurations.add( typeContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager ) );
+			configurations.add( typeContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) );
 		}
 
 		return configurations;

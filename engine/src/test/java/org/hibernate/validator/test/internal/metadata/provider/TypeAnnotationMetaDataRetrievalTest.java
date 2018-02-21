@@ -18,15 +18,19 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.internal.engine.DefaultParameterNameProvider;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.provider.AnnotationMetaDataProvider;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedPropertyKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -46,6 +50,7 @@ public class TypeAnnotationMetaDataRetrievalTest extends AnnotationMetaDataProvi
 				new ConstraintHelper(),
 				new TypeResolutionHelper(),
 				new ValueExtractorManager( Collections.emptySet() ),
+				new ExecutableParameterNameProvider( new DefaultParameterNameProvider() ),
 				new AnnotationProcessingOptionsImpl()
 		);
 	}
@@ -54,9 +59,9 @@ public class TypeAnnotationMetaDataRetrievalTest extends AnnotationMetaDataProvi
 	public void testFieldTypeArgument() throws Exception {
 		BeanConfiguration<A> beanConfiguration = provider.getBeanConfiguration( A.class );
 
-		ConstrainedField field = findConstrainedField( beanConfiguration, A.class, "names" );
-		assertThat( field.getTypeArgumentConstraints().size() ).isEqualTo( 2 );
-		assertThat( getAnnotationsTypes( field.getTypeArgumentConstraints() ) ).contains(
+		ConstrainedProperty property = findConstrainedProperty( beanConfiguration, A.class, "names", ConstrainedPropertyKind.FIELD );
+		assertThat( property.getTypeArgumentConstraints().size() ).isEqualTo( 2 );
+		assertThat( getAnnotationsTypes( property.getTypeArgumentConstraints() ) ).contains(
 				NotNull.class, NotBlank.class
 		);
 	}
@@ -65,7 +70,7 @@ public class TypeAnnotationMetaDataRetrievalTest extends AnnotationMetaDataProvi
 	public void testGetterTypeArgument() throws Exception {
 		BeanConfiguration<B> beanConfiguration = provider.getBeanConfiguration( B.class );
 
-		ConstrainedExecutable executable = findConstrainedMethod( beanConfiguration, B.class, "getNames" );
+		ConstrainedProperty executable = findConstrainedProperty( beanConfiguration, B.class, "getNames", ConstrainedPropertyKind.GETTER );
 		assertThat( executable.getTypeArgumentConstraints().size() ).isEqualTo( 2 );
 		assertThat( getAnnotationsTypes( executable.getTypeArgumentConstraints() ) ).contains(
 				NotNull.class, NotBlank.class

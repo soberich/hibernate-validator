@@ -23,7 +23,8 @@ import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOption
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.properties.java.beans.JavaBeansField;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -52,14 +53,14 @@ class ConstrainedFieldBuilder {
 		this.annotationProcessingOptions = annotationProcessingOptions;
 	}
 
-	Set<ConstrainedField> buildConstrainedFields(List<FieldType> fields,
+	Set<ConstrainedProperty> buildConstrainedFields(List<FieldType> fields,
 															   Class<?> beanClass,
 															   String defaultPackage) {
-		Set<ConstrainedField> constrainedFields = new HashSet<>();
+		Set<ConstrainedProperty> constrainedFields = new HashSet<>();
 		List<String> alreadyProcessedFieldNames = new ArrayList<>();
 		for ( FieldType fieldType : fields ) {
 			Field field = findField( beanClass, fieldType.getName(), alreadyProcessedFieldNames );
-			ConstraintLocation constraintLocation = ConstraintLocation.forField( field );
+			ConstraintLocation constraintLocation = ConstraintLocation.forProperty( new JavaBeansField( field ) );
 			Set<MetaConstraint<?>> metaConstraints = new HashSet<>();
 
 			for ( ConstraintType constraint : fieldType.getConstraint() ) {
@@ -78,9 +79,9 @@ class ConstrainedFieldBuilder {
 			ContainerElementTypeConfiguration containerElementTypeConfiguration = containerElementTypeConfigurationBuilder
 					.build( fieldType.getContainerElementType(), ReflectionHelper.typeOf( field ) );
 
-			ConstrainedField constrainedField = new ConstrainedField(
+			ConstrainedProperty constrainedField = ConstrainedProperty.forField(
 					ConfigurationSource.XML,
-					field,
+					new JavaBeansField( field ),
 					metaConstraints,
 					containerElementTypeConfiguration.getMetaConstraints(),
 					getCascadingMetaDataForField( containerElementTypeConfiguration.getTypeParametersCascadingMetaData(), field, fieldType, defaultPackage )

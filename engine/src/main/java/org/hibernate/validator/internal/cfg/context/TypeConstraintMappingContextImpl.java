@@ -34,6 +34,7 @@ import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.util.Contracts;
 import org.hibernate.validator.internal.util.ExecutableHelper;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
@@ -190,18 +191,18 @@ public final class TypeConstraintMappingContextImpl<C> extends ConstraintMapping
 	}
 
 	BeanConfiguration<C> build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+			ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		return new BeanConfiguration<>(
 				ConfigurationSource.API,
 				beanClass,
-				buildConstraintElements( constraintHelper, typeResolutionHelper, valueExtractorManager ),
+				buildConstraintElements( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
 				defaultGroupSequence,
 				getDefaultGroupSequenceProvider()
 		);
 	}
 
 	private Set<ConstrainedElement> buildConstraintElements(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+			ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		Set<ConstrainedElement> elements = newHashSet();
 
 		//class-level configuration
@@ -209,18 +210,18 @@ public final class TypeConstraintMappingContextImpl<C> extends ConstraintMapping
 				new ConstrainedType(
 						ConfigurationSource.API,
 						beanClass,
-						getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager )
+						getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider )
 				)
 		);
 
 		//constructors/methods
 		for ( ExecutableConstraintMappingContextImpl executableContext : executableContexts ) {
-			elements.add( executableContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager ) );
+			elements.add( executableContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) );
 		}
 
 		//properties
 		for ( PropertyConstraintMappingContextImpl propertyContext : propertyContexts ) {
-			elements.add( propertyContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager ) );
+			elements.add( propertyContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) );
 		}
 
 		return elements;

@@ -48,9 +48,11 @@ import javax.xml.stream.XMLStreamException;
 import org.hibernate.validator.internal.engine.messageinterpolation.parser.MessageDescriptorFormatException;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.properties.Constrainable;
 import org.hibernate.validator.internal.util.logging.formatter.ClassObjectFormatter;
 import org.hibernate.validator.internal.util.logging.formatter.CollectionOfClassesObjectFormatter;
 import org.hibernate.validator.internal.util.logging.formatter.CollectionOfObjectsToStringFormatter;
+import org.hibernate.validator.internal.util.logging.formatter.ConstrainableFormatter;
 import org.hibernate.validator.internal.util.logging.formatter.DurationFormatter;
 import org.hibernate.validator.internal.util.logging.formatter.ExecutableFormatter;
 import org.hibernate.validator.internal.util.logging.formatter.ObjectArrayFormatter;
@@ -499,7 +501,7 @@ public interface Log extends BasicLogger {
 	@Message(id = 142,
 			value = "Cross parameter constraint %1$s is illegally placed on a parameterless method or constructor '%2$s'.")
 	ConstraintDeclarationException getCrossParameterConstraintOnMethodWithoutParametersException(
-			@FormatWith(ClassObjectFormatter.class) Class<? extends Annotation> constraint, @FormatWith(ExecutableFormatter.class) Executable executable);
+			@FormatWith(ClassObjectFormatter.class) Class<? extends Annotation> constraint, @FormatWith(ConstrainableFormatter.class) Constrainable executable);
 
 	@Message(id = 143,
 			value = "Cross parameter constraint %1$s is illegally placed on class level.")
@@ -508,7 +510,7 @@ public interface Log extends BasicLogger {
 	@Message(id = 144,
 			value = "Cross parameter constraint %1$s is illegally placed on field '%2$s'.")
 	ConstraintDeclarationException getCrossParameterConstraintOnFieldException(@FormatWith(ClassObjectFormatter.class) Class<? extends Annotation> constraint,
-			Member field);
+			Constrainable field);
 
 	@Message(id = 146,
 			value = "No parameter nodes may be added since path %s doesn't refer to a cross-parameter constraint.")
@@ -713,7 +715,7 @@ public interface Log extends BasicLogger {
 	ValueExtractorDefinitionException getValueExtractorDeclaresExtractedValueMultipleTimesException(@FormatWith(ClassObjectFormatter.class) Class<?> extractorType);
 
 	@Message(id = 205, value = "Invalid unwrapping configuration for constraint %2$s on %1$s. You can only define one of 'Unwrapping.Skip' or 'Unwrapping.Unwrap'.")
-	ConstraintDeclarationException getInvalidUnwrappingConfigurationForConstraintException(Member member, @FormatWith(ClassObjectFormatter.class) Class<? extends Annotation> constraint);
+	ConstraintDeclarationException getInvalidUnwrappingConfigurationForConstraintException(Constrainable constrainable, @FormatWith(ClassObjectFormatter.class) Class<? extends Annotation> constraint);
 
 	@Message(id = 206, value = "Unable to instantiate value extractor class %s.")
 	ValidationException getUnableToInstantiateValueExtractorClassException(String valueExtractorClassName, @Cause ValidationException e);

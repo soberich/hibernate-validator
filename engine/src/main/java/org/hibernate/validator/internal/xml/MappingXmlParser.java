@@ -41,8 +41,9 @@ import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOption
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -69,6 +70,7 @@ public class MappingXmlParser {
 	private final ConstraintHelper constraintHelper;
 	private final TypeResolutionHelper typeResolutionHelper;
 	private final ValueExtractorManager valueExtractorManager;
+	private final ExecutableParameterNameProvider executableParameterNameProvider;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 	private final Map<Class<?>, List<Class<?>>> defaultSequences;
 	private final Map<Class<?>, Set<ConstrainedElement>> constrainedElements;
@@ -90,10 +92,11 @@ public class MappingXmlParser {
 	}
 
 	public MappingXmlParser(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager,
-			ClassLoader externalClassLoader) {
+			ExecutableParameterNameProvider executableParameterNameProvider, ClassLoader externalClassLoader) {
 		this.constraintHelper = constraintHelper;
 		this.typeResolutionHelper = typeResolutionHelper;
 		this.valueExtractorManager = valueExtractorManager;
+		this.executableParameterNameProvider = executableParameterNameProvider;
 		this.annotationProcessingOptions = new AnnotationProcessingOptionsImpl();
 		this.defaultSequences = newHashMap();
 		this.constrainedElements = newHashMap();
@@ -133,6 +136,7 @@ public class MappingXmlParser {
 					annotationProcessingOptions
 			);
 			ConstrainedExecutableBuilder constrainedExecutableBuilder = new ConstrainedExecutableBuilder(
+					executableParameterNameProvider,
 					classLoadingHelper,
 					metaConstraintBuilder,
 					groupConversionBuilder,
@@ -251,14 +255,14 @@ public class MappingXmlParser {
 			addConstrainedElement( beanClass, constrainedType );
 		}
 
-		Set<ConstrainedField> constrainedFields = constrainedFieldBuilder.buildConstrainedFields(
+		Set<ConstrainedProperty> constrainedFields = constrainedFieldBuilder.buildConstrainedFields(
 				bean.getField(),
 				beanClass,
 				defaultPackage
 		);
 		addConstrainedElements( beanClass, constrainedFields );
 
-		Set<ConstrainedExecutable> constrainedGetters = constrainedGetterBuilder.buildConstrainedGetters(
+		Set<ConstrainedProperty> constrainedGetters = constrainedGetterBuilder.buildConstrainedGetters(
 				bean.getGetter(),
 				beanClass,
 				defaultPackage

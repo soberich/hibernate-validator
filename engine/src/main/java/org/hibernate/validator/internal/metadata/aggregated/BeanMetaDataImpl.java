@@ -46,7 +46,7 @@ import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.ExecutableHelper;
@@ -686,11 +686,11 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 			this.methodValidationConfiguration = methodValidationConfiguration;
 
 			switch ( constrainedElement.getKind() ) {
-				case FIELD:
-					ConstrainedField constrainedField = (ConstrainedField) constrainedElement;
+				case PROPERTY:
+					ConstrainedProperty constrainedProperty = ( (ConstrainedProperty) constrainedElement );
 					propertyBuilder = new PropertyMetaData.Builder(
 							beanClass,
-							constrainedField,
+							constrainedProperty,
 							constraintHelper,
 							typeResolutionHelper,
 							valueExtractorManager
@@ -716,15 +716,6 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 						);
 					}
 
-					if ( constrainedExecutable.isGetterMethod() ) {
-						propertyBuilder = new PropertyMetaData.Builder(
-								beanClass,
-								constrainedExecutable,
-								constraintHelper,
-								typeResolutionHelper,
-								valueExtractorManager
-						);
-					}
 					break;
 				case TYPE:
 					ConstrainedType constrainedType = (ConstrainedType) constrainedElement;

@@ -40,6 +40,8 @@ import org.hibernate.validator.internal.metadata.core.MetaConstraints;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationReflectionInformation;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.StringHelper;
 import org.hibernate.validator.internal.util.TypeHelper;
@@ -57,7 +59,7 @@ public class ContainerElementConstraintMappingContextImpl extends CascadableCons
 
 	private final TypeConstraintMappingContextImpl<?> typeContext;
 	private final ContainerElementTarget parentContainerElementTarget;
-	private final ConstraintLocation parentLocation;
+	private final ConstraintLocationReflectionInformation parentLocation;
 
 	/**
 	 * The type configured through this context. Either a {@code ParameterizedType} or an array type.
@@ -82,7 +84,7 @@ public class ContainerElementConstraintMappingContextImpl extends CascadableCons
 	private final Set<ConfiguredConstraint<?>> constraints;
 
 	ContainerElementConstraintMappingContextImpl(TypeConstraintMappingContextImpl<?> typeContext, ContainerElementTarget parentContainerElementTarget,
-			ConstraintLocation parentLocation, int index) {
+			ConstraintLocationReflectionInformation parentLocation, int index) {
 		super( typeContext.getConstraintMapping(), parentLocation.getTypeForValidatorResolution() );
 		this.typeContext = typeContext;
 		this.parentContainerElementTarget = parentContainerElementTarget;
@@ -171,7 +173,7 @@ public class ContainerElementConstraintMappingContextImpl extends CascadableCons
 		ContainerElementConstraintMappingContextImpl nestedContext = new ContainerElementConstraintMappingContextImpl(
 			typeContext,
 			parentContainerElementTarget,
-			ConstraintLocation.forTypeArgument( parentLocation, typeParameter, getContainerElementType() ),
+			ConstraintLocationReflectionInformation.forTypeArgument( parentLocation, typeParameter, getContainerElementType() ),
 			nestedIndexes[0]
 		);
 
@@ -219,29 +221,28 @@ public class ContainerElementConstraintMappingContextImpl extends CascadableCons
 	}
 
 	Set<MetaConstraint<?>> build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+			ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		return Stream.concat(
-			constraints.stream()
-				.map( c -> asMetaConstraint( c, constraintHelper, typeResolutionHelper, valueExtractorManager ) ),
-			nestedContainerElementContexts.values()
-				.stream()
-				.map( c -> c.build( constraintHelper, typeResolutionHelper, valueExtractorManager ) )
-				.flatMap( Set::stream )
-			)
-			.collect( Collectors.toSet() );
+				constraints.stream()
+						.map( c -> asMetaConstraint( c, constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) ),
+				nestedContainerElementContexts.values().stream()
+						.map( c -> c.build( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) )
+						.flatMap( Set::stream )
+		).collect( Collectors.toSet() );
 	}
 
 	private <A extends Annotation> MetaConstraint<A> asMetaConstraint(ConfiguredConstraint<A> config, ConstraintHelper constraintHelper,
-			TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+			TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
+		ConstraintLocation location = config.getLocation().toConstraintLocation( executableParameterNameProvider );
 		ConstraintDescriptorImpl<A> constraintDescriptor = new ConstraintDescriptorImpl<>(
 				constraintHelper,
-				config.getLocation().getMember(),
+				location.getMember(),
 				config.createAnnotationDescriptor(),
 				config.getElementType(),
 				getConstraintType()
 		);
 
-		return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor, config.getLocation() );
+		return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor, location );
 	}
 
 	@Override

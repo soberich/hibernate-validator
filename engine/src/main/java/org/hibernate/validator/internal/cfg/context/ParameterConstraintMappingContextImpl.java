@@ -18,9 +18,10 @@ import org.hibernate.validator.cfg.context.ReturnValueConstraintMappingContext;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationReflectionInformation;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 
@@ -105,7 +106,7 @@ final class ParameterConstraintMappingContextImpl
 		return super.containerElement(
 				this,
 				executableContext.getTypeContext(),
-				ConstraintLocation.forParameter( executableContext.getExecutable(), parameterIndex )
+				ConstraintLocationReflectionInformation.forParameter( executableContext.getExecutable(), parameterIndex )
 		);
 	}
 
@@ -114,14 +115,14 @@ final class ParameterConstraintMappingContextImpl
 		return super.containerElement(
 				this,
 				executableContext.getTypeContext(),
-				ConstraintLocation.forParameter( executableContext.getExecutable(), parameterIndex ),
+				ConstraintLocationReflectionInformation.forParameter( executableContext.getExecutable(), parameterIndex ),
 				index,
 				nestedIndexes
 		);
 	}
 
 	public ConstrainedParameter build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+			ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		Type parameterType = ReflectionHelper.typeOf( executableContext.getExecutable(), parameterIndex );
 
 		return new ConstrainedParameter(
@@ -129,8 +130,8 @@ final class ParameterConstraintMappingContextImpl
 				executableContext.getExecutable(),
 				parameterType,
 				parameterIndex,
-				getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
-				getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
+				getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+				getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
 				getCascadingMetaDataBuilder()
 		);
 	}

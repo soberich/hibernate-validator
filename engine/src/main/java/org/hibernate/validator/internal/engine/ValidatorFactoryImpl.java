@@ -143,16 +143,6 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 			hibernateSpecificConfig = (ConfigurationImpl) configurationState;
 		}
 
-		// HV-302; don't load XmlMappingParser if not necessary
-		if ( configurationState.getMappingStreams().isEmpty() ) {
-			this.xmlMetaDataProvider = null;
-		}
-		else {
-			this.xmlMetaDataProvider = new XmlMetaDataProvider(
-					constraintHelper, typeResolutionHelper, valueExtractorManager, configurationState.getMappingStreams(), externalClassLoader
-			);
-		}
-
 		this.constraintMappings = Collections.unmodifiableSet(
 				getConstraintMappings(
 						typeResolutionHelper,
@@ -188,6 +178,16 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 
 		if ( LOG.isDebugEnabled() ) {
 			logValidatorFactoryScopedConfiguration( validatorFactoryScopedContext );
+		}
+
+		// HV-302; don't load XmlMappingParser if not necessary
+		if ( configurationState.getMappingStreams().isEmpty() ) {
+			this.xmlMetaDataProvider = null;
+		}
+		else {
+			this.xmlMetaDataProvider = new XmlMetaDataProvider(
+					constraintHelper, typeResolutionHelper, valueExtractorManager, getExecutableParameterNameProvider(), configurationState.getMappingStreams(), externalClassLoader
+			);
 		}
 	}
 
@@ -364,6 +364,7 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 							constraintHelper,
 							typeResolutionHelper,
 							valueExtractorManager,
+							validatorFactoryScopedContext.getParameterNameProvider(),
 							constraintMappings
 					)
 			);

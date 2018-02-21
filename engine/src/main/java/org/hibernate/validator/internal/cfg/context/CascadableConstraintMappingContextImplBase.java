@@ -27,8 +27,9 @@ import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorMan
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBuilder;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationReflectionInformation;
 import org.hibernate.validator.internal.util.Contracts;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
@@ -90,7 +91,7 @@ abstract class CascadableConstraintMappingContextImplBase<C extends Cascadable<C
 	}
 
 	public ContainerElementConstraintMappingContext containerElement(ContainerElementTarget parent, TypeConstraintMappingContextImpl<?> typeContext,
-			ConstraintLocation location) {
+			ConstraintLocationReflectionInformation location) {
 
 		// HV-1428 Container element support is disabled for arrays
 		if ( TypeHelper.isArray( configuredType ) ) {
@@ -110,7 +111,7 @@ abstract class CascadableConstraintMappingContextImplBase<C extends Cascadable<C
 	}
 
 	public ContainerElementConstraintMappingContext containerElement(ContainerElementTarget parent, TypeConstraintMappingContextImpl<?> typeContext,
-			ConstraintLocation location, int index, int... nestedIndexes) {
+			ConstraintLocationReflectionInformation location, int index, int... nestedIndexes) {
 		Contracts.assertTrue( index >= 0, "Type argument index must not be negative" );
 
 		// HV-1428 Container element support is disabled for arrays
@@ -148,12 +149,12 @@ abstract class CascadableConstraintMappingContextImplBase<C extends Cascadable<C
 		return isCascading;
 	}
 
-	protected Set<MetaConstraint<?>> getTypeArgumentConstraints(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+	protected Set<MetaConstraint<?>> getTypeArgumentConstraints(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		return containerElementContexts.values()
-			.stream()
-			.map( t -> t.build( constraintHelper, typeResolutionHelper, valueExtractorManager ) )
-			.flatMap( Set::stream )
-			.collect( Collectors.toSet() );
+				.stream()
+				.map( t -> t.build( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) )
+				.flatMap( Set::stream )
+				.collect( Collectors.toSet() );
 	}
 
 	protected CascadingMetaDataBuilder getCascadingMetaDataBuilder() {

@@ -15,7 +15,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,8 +24,8 @@ import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOption
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.properties.java.beans.JavaBeansGetter;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -56,15 +55,15 @@ class ConstrainedGetterBuilder {
 		this.annotationProcessingOptions = annotationProcessingOptions;
 	}
 
-	Set<ConstrainedExecutable> buildConstrainedGetters(List<GetterType> getterList,
+	Set<ConstrainedProperty> buildConstrainedGetters(List<GetterType> getterList,
 																	 Class<?> beanClass,
 																	 String defaultPackage) {
-		Set<ConstrainedExecutable> constrainedExecutables = newHashSet();
+		Set<ConstrainedProperty> constrainedExecutables = newHashSet();
 		List<String> alreadyProcessedGetterNames = newArrayList();
 		for ( GetterType getterType : getterList ) {
 			String getterName = getterType.getName();
 			Method getter = findGetter( beanClass, getterName, alreadyProcessedGetterNames );
-			ConstraintLocation constraintLocation = ConstraintLocation.forGetter( getter );
+			ConstraintLocation constraintLocation = ConstraintLocation.forProperty( new JavaBeansGetter( getter ) );
 
 			Set<MetaConstraint<?>> metaConstraints = newHashSet();
 			for ( ConstraintType constraint : getterType.getConstraint() ) {
@@ -83,11 +82,9 @@ class ConstrainedGetterBuilder {
 			ContainerElementTypeConfiguration containerElementTypeConfiguration = containerElementTypeConfigurationBuilder
 					.build( getterType.getContainerElementType(), ReflectionHelper.typeOf( getter ) );
 
-			ConstrainedExecutable constrainedGetter = new ConstrainedExecutable(
+			ConstrainedProperty constrainedGetter = ConstrainedProperty.forGetter(
 					ConfigurationSource.XML,
-					getter,
-					Collections.<ConstrainedParameter>emptyList(),
-					Collections.<MetaConstraint<?>>emptySet(),
+					new JavaBeansGetter( getter ),
 					metaConstraints,
 					containerElementTypeConfiguration.getMetaConstraints(),
 					getCascadingMetaDataForGetter( containerElementTypeConfiguration.getTypeParametersCascadingMetaData(), getter, getterType, defaultPackage )

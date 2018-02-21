@@ -6,28 +6,26 @@
  */
 package org.hibernate.validator.internal.metadata.location;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
+import org.hibernate.validator.internal.properties.Callable;
+import org.hibernate.validator.internal.properties.Constrainable;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
-import org.hibernate.validator.internal.util.ReflectionHelper;
 
 /**
  * Executable return value constraint location.
  *
  * @author Hardy Ferentschik
  * @author Gunnar Morling
+ * @author Marko Bekhta
  */
 class ReturnValueConstraintLocation implements ConstraintLocation {
 
-	private final Executable executable;
-	private final Type typeForValidatorResolution;
+	private final Callable executable;
 
-	ReturnValueConstraintLocation(Executable executable) {
+	ReturnValueConstraintLocation(Callable executable) {
 		this.executable = executable;
-		this.typeForValidatorResolution = ReflectionHelper.boxedType( ReflectionHelper.typeOf( executable ) );
 	}
 
 	@Override
@@ -36,13 +34,13 @@ class ReturnValueConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public Member getMember() {
+	public Constrainable getMember() {
 		return executable;
 	}
 
 	@Override
 	public Type getTypeForValidatorResolution() {
-		return typeForValidatorResolution;
+		return executable.getTypeForValidatorResolution();
 	}
 
 	@Override
@@ -80,12 +78,7 @@ class ReturnValueConstraintLocation implements ConstraintLocation {
 			return false;
 		}
 		ReturnValueConstraintLocation other = (ReturnValueConstraintLocation) obj;
-		if ( executable == null ) {
-			if ( other.executable != null ) {
-				return false;
-			}
-		}
-		else if ( !executable.equals( other.executable ) ) {
+		if ( !executable.equals( other.executable ) ) {
 			return false;
 		}
 

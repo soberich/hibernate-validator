@@ -146,6 +146,7 @@ public class BeanMetaDataManager {
 					constraintHelper,
 					typeResolutionHelper,
 					valueExtractorManager,
+					parameterNameProvider,
 					annotationProcessingOptions
 			);
 

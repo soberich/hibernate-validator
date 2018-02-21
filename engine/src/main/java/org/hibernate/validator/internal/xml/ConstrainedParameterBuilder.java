@@ -23,6 +23,8 @@ import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
+import org.hibernate.validator.internal.properties.java.beans.JavaBeansExecutable;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.xml.ContainerElementTypeConfigurationBuilder.ContainerElementTypeConfiguration;
 import org.hibernate.validator.internal.xml.binding.ConstraintType;
@@ -36,13 +38,16 @@ import org.hibernate.validator.internal.xml.binding.ParameterType;
  */
 class ConstrainedParameterBuilder {
 
+	private final ExecutableParameterNameProvider executableParameterNameProvider;
 	private final GroupConversionBuilder groupConversionBuilder;
 	private final MetaConstraintBuilder metaConstraintBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 
-	ConstrainedParameterBuilder(MetaConstraintBuilder metaConstraintBuilder,
+	ConstrainedParameterBuilder(ExecutableParameterNameProvider executableParameterNameProvider,
+			MetaConstraintBuilder metaConstraintBuilder,
 			GroupConversionBuilder groupConversionBuilder,
 			AnnotationProcessingOptionsImpl annotationProcessingOptions) {
+		this.executableParameterNameProvider = executableParameterNameProvider;
 		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.groupConversionBuilder = groupConversionBuilder;
 		this.annotationProcessingOptions = annotationProcessingOptions;
@@ -50,11 +55,13 @@ class ConstrainedParameterBuilder {
 
 	List<ConstrainedParameter> buildConstrainedParameters(List<ParameterType> parameterList,
 																		Executable executable,
+																		JavaBeansExecutable javaBeansExecutable,
 																		String defaultPackage) {
 		List<ConstrainedParameter> constrainedParameters = newArrayList();
 		int i = 0;
+		List<String> parameterNames = executableParameterNameProvider.getParameterNames( executable );
 		for ( ParameterType parameterType : parameterList ) {
-			ConstraintLocation constraintLocation = ConstraintLocation.forParameter( executable, i );
+			ConstraintLocation constraintLocation = ConstraintLocation.forParameter( javaBeansExecutable, parameterNames.get( i ), i );
 			Type type = ReflectionHelper.typeOf( executable, i );
 
 			Set<MetaConstraint<?>> metaConstraints = new HashSet<>();
