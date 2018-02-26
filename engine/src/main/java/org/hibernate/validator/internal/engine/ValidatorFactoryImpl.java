@@ -143,16 +143,6 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 			hibernateSpecificConfig = (ConfigurationImpl) configurationState;
 		}
 
-		this.constraintMappings = Collections.unmodifiableSet(
-				getConstraintMappings(
-						typeResolutionHelper,
-						configurationState,
-						externalClassLoader
-				)
-		);
-
-		registerCustomConstraintValidators( constraintMappings, constraintHelper );
-
 		Map<String, String> properties = configurationState.getProperties();
 
 		this.methodValidationConfiguration = new MethodValidationConfiguration.Builder()
@@ -189,6 +179,16 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 					constraintHelper, typeResolutionHelper, valueExtractorManager, getExecutableParameterNameProvider(), configurationState.getMappingStreams(), externalClassLoader
 			);
 		}
+
+		this.constraintMappings = Collections.unmodifiableSet(
+				getConstraintMappings(
+						typeResolutionHelper,
+						configurationState,
+						externalClassLoader
+				)
+		);
+
+		registerCustomConstraintValidators( constraintMappings, constraintHelper );
 	}
 
 	private static ClassLoader getExternalClassLoader(ConfigurationState configurationState) {

@@ -10,6 +10,8 @@ import java.lang.annotation.ElementType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Set;
 
 import org.hibernate.validator.cfg.ConstraintDef;
 import org.hibernate.validator.cfg.context.ConstructorConstraintMappingContext;
@@ -22,9 +24,11 @@ import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptor
 import org.hibernate.validator.internal.metadata.location.ConstraintLocationReflectionInformation;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
 import org.hibernate.validator.internal.properties.java.beans.JavaBeansField;
 import org.hibernate.validator.internal.properties.java.beans.JavaBeansGetter;
+import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
@@ -118,24 +122,40 @@ final class PropertyConstraintMappingContextImpl
 		return super.containerElement( this, typeContext, location, index, nestedIndexes );
 	}
 
-	ConstrainedElement build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
+	Set<ConstrainedElement> build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider) {
 		if ( member instanceof Field ) {
-			return ConstrainedProperty.forField(
-					ConfigurationSource.API,
-					new JavaBeansField( (Field) member ),
-					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
-					getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
-					getCascadingMetaDataBuilder()
+			return Collections.singleton(
+					ConstrainedProperty.forField(
+							ConfigurationSource.API,
+							new JavaBeansField( (Field) member ),
+							getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+							getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+							getCascadingMetaDataBuilder()
+					)
 			);
 		}
 		else {
-			return ConstrainedProperty.forGetter(
-					ConfigurationSource.API,
-					new JavaBeansGetter( (Method) member ),
-					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
-					getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
-					getCascadingMetaDataBuilder()
+			Set<ConstrainedElement> elements = CollectionHelper.newHashSet( 2 );
+			elements.add(
+					ConstrainedProperty.forGetter(
+							ConfigurationSource.API,
+							new JavaBeansGetter( (Method) member ),
+							getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+							getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+							getCascadingMetaDataBuilder()
+					)
 			);
+			elements.add(
+					new ConstrainedExecutable(
+							ConfigurationSource.API,
+							(Method) member,
+							getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+							getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ),
+							getCascadingMetaDataBuilder()
+					)
+			);
+
+			return elements;
 		}
 	}
 

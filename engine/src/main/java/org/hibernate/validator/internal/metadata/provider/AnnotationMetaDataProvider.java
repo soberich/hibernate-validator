@@ -298,9 +298,7 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 			if ( isGetterMethod ) {
 				executableMetaData.add( findPropertyMetaData( (Method) executable ) );
 			}
-			else {
-				executableMetaData.add( findExecutableMetaData( executable ) );
-			}
+			executableMetaData.add( findExecutableMetaData( executable ) );
 		}
 
 		return executableMetaData;

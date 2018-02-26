@@ -31,21 +31,23 @@ public abstract class AnnotationMetaDataProviderTestBase {
 
 		return (ConstrainedProperty) findConstrainedElement( beanConfiguration,
 				constrainedPropertyKind == ConstrainedPropertyKind.FIELD
-				? clazz.getDeclaredField( propertyName )
-				: clazz.getMethod( propertyName, parameterTypes ) );
+						? clazz.getDeclaredField( propertyName )
+						: clazz.getMethod( propertyName, parameterTypes ),
+				ConstrainedElementKind.PROPERTY
+		);
 	}
 
 	protected <T> ConstrainedExecutable findConstrainedMethod(BeanConfiguration<T> beanConfiguration,
 															  Class<? super T> clazz, String methodName,
 			Class<?>... parameterTypes) throws Exception {
 
-		return (ConstrainedExecutable) findConstrainedElement( beanConfiguration, clazz.getMethod( methodName, parameterTypes ) );
+		return (ConstrainedExecutable) findConstrainedElement( beanConfiguration, clazz.getMethod( methodName, parameterTypes ), ConstrainedElementKind.METHOD );
 	}
 
 	protected <T> ConstrainedExecutable findConstrainedConstructor(BeanConfiguration<T> beanConfigurations, Class<T> clazz, Class<?>... parameterTypes)
 			throws Exception {
 
-		return (ConstrainedExecutable) findConstrainedElement( beanConfigurations, clazz.getConstructor( parameterTypes ) );
+		return (ConstrainedExecutable) findConstrainedElement( beanConfigurations, clazz.getConstructor( parameterTypes ), ConstrainedElementKind.CONSTRUCTOR );
 	}
 
 	protected <T> ConstrainedType findConstrainedType(BeanConfiguration<T> beanConfiguration,
@@ -63,9 +65,12 @@ public abstract class AnnotationMetaDataProviderTestBase {
 		throw new RuntimeException( "Found no constrained element for type " + type );
 	}
 
-	protected ConstrainedElement findConstrainedElement(BeanConfiguration<?> beanConfiguration, Member member) {
+	protected ConstrainedElement findConstrainedElement(BeanConfiguration<?> beanConfiguration, Member member, ConstrainedElementKind constrainedElementKind) {
 
 		for ( ConstrainedElement constrainedElement : beanConfiguration.getConstrainedElements() ) {
+			if ( constrainedElement.getKind() != constrainedElementKind ) {
+				continue;
+			}
 			if ( member instanceof Executable && constrainedElement instanceof ConstrainedExecutable ) {
 				if ( member.equals( ( (ConstrainedExecutable) constrainedElement ).getExecutable() ) ) {
 					return constrainedElement;

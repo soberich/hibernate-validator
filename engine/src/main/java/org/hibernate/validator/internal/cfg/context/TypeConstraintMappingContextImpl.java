@@ -221,7 +221,7 @@ public final class TypeConstraintMappingContextImpl<C> extends ConstraintMapping
 
 		//properties
 		for ( PropertyConstraintMappingContextImpl propertyContext : propertyContexts ) {
-			elements.add( propertyContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) );
+			elements.addAll( propertyContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager, executableParameterNameProvider ) );
 		}
 
 		return elements;
