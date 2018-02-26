@@ -695,6 +695,10 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 							typeResolutionHelper,
 							valueExtractorManager
 					);
+
+					//TODO: as getters are now represented as properties we need to add them to `methodBuilder`
+					// so that they get included in `executableMetaDataMap`
+
 					break;
 				case CONSTRUCTOR:
 				case METHOD:

@@ -19,7 +19,7 @@ public interface Constrainable {
 
 	java.lang.reflect.Type getType();
 
-	default <T> T as(Class<T> clazz){
+	default <T> T as(Class<T> clazz) {
 		return ( (T) this );
 	}
 }

@@ -11,7 +11,6 @@ import static org.testng.Assert.assertEquals;
 import java.lang.reflect.Method;
 
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
-import org.hibernate.validator.internal.properties.Callable;
 import org.hibernate.validator.internal.properties.Property;
 import org.hibernate.validator.internal.properties.java.beans.JavaBeansGetter;
 import org.hibernate.validator.testutil.TestForIssue;

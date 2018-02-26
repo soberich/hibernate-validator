@@ -29,7 +29,7 @@ public class JavaBeansField implements Property {
 	public JavaBeansField(Field field) {
 		this.field = getAccessible( field );
 		this.name = field.getName();
-		this.type =  ReflectionHelper.typeOf( field ) ;
+		this.type = ReflectionHelper.typeOf( field );
 		this.typeForValidatorResolution = ReflectionHelper.boxedType( this.type );
 	}
 

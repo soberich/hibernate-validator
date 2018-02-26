@@ -7,7 +7,6 @@
 package org.hibernate.validator.internal.cfg.context;
 
 import java.lang.annotation.ElementType;
-import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;

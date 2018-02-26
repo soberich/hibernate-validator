@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBuilder;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedPropertyKind;
 import org.hibernate.validator.internal.properties.Property;
 
 /**

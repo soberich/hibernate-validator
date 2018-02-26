@@ -6,8 +6,6 @@
  */
 package org.hibernate.validator.internal.metadata.aggregated;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.security.AccessController;
@@ -29,15 +27,12 @@ import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.descriptor.PropertyDescriptorImpl;
 import org.hibernate.validator.internal.metadata.facets.Cascadable;
-import org.hibernate.validator.internal.metadata.raw.AbstractConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.properties.Property;
 import org.hibernate.validator.internal.util.CollectionHelper;
-import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.privilegedactions.GetDeclaredMethod;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;

@@ -6,7 +6,6 @@
  */
 package org.hibernate.validator.internal.metadata.location;
 
-import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
