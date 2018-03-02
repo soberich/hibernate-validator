@@ -25,9 +25,11 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 	private final Executable executable;
 	private final int index;
 	private final Type typeForValidatorResolution;
+	private final String name;
 
-	ParameterConstraintLocation(Executable executable, int index) {
+	ParameterConstraintLocation(Executable executable, String name, int index) {
 		this.executable = executable;
+		this.name = name;
 		this.index = index;
 		this.typeForValidatorResolution = ReflectionHelper.boxedType( ReflectionHelper.typeOf( executable, index ) );
 	}
@@ -52,8 +54,7 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public void appendTo(ExecutableParameterNameProvider parameterNameProvider, PathImpl path) {
-		String name = parameterNameProvider.getParameterNames( executable ).get( index );
+	public void appendTo(PathImpl path) {
 		path.addParameterNode( name, index );
 	}
 

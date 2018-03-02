@@ -59,8 +59,8 @@ public interface ConstraintLocation {
 		return new CrossParameterConstraintLocation( executable );
 	}
 
-	static ConstraintLocation forParameter(Executable executable, int index) {
-		return new ParameterConstraintLocation( executable, index );
+	static ConstraintLocation forParameter(Executable executable, String name, int index) {
+		return new ParameterConstraintLocation( executable, name, index );
 	}
 
 	/**
@@ -87,7 +87,7 @@ public interface ConstraintLocation {
 	/**
 	 * Appends a node representing this location to the given property path.
 	 */
-	void appendTo(ExecutableParameterNameProvider parameterNameProvider, PathImpl path);
+	void appendTo(PathImpl path);
 
 	/**
 	 * Obtains the value of this location from the parent. The type of the passed parent depends on the location type,

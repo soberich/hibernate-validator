@@ -65,6 +65,7 @@ import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.ExecutableHelper;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.annotation.ConstraintAnnotationDescriptor;
@@ -94,16 +95,19 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 	private final TypeResolutionHelper typeResolutionHelper;
 	private final AnnotationProcessingOptions annotationProcessingOptions;
 	private final ValueExtractorManager valueExtractorManager;
+	private final ExecutableParameterNameProvider executableParameterNameProvider;
 
 	private final BeanConfiguration<Object> objectBeanConfiguration;
 
 	public AnnotationMetaDataProvider(ConstraintHelper constraintHelper,
 			TypeResolutionHelper typeResolutionHelper,
 			ValueExtractorManager valueExtractorManager,
+			ExecutableParameterNameProvider executableParameterNameProvider,
 			AnnotationProcessingOptions annotationProcessingOptions) {
 		this.constraintHelper = constraintHelper;
 		this.typeResolutionHelper = typeResolutionHelper;
 		this.valueExtractorManager = valueExtractorManager;
+		this.executableParameterNameProvider = executableParameterNameProvider;
 		this.annotationProcessingOptions = annotationProcessingOptions;
 
 		this.objectBeanConfiguration = retrieveBeanConfiguration( Object.class );
@@ -377,6 +381,7 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 		}
 
 		Parameter[] parameters = executable.getParameters();
+		List<String> parameterNames = executableParameterNameProvider.getParameterNames( executable );
 
 		List<ConstrainedParameter> metaData = new ArrayList<>( parameters.length );
 
@@ -410,7 +415,8 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 				continue;
 			}
 
-			ConstraintLocation location = ConstraintLocation.forParameter( executable, i );
+			String parameterName = parameterNames.get( i );
+			ConstraintLocation location = ConstraintLocation.forParameter( executable, parameterName, i );
 
 			for ( Annotation parameterAnnotation : parameterAnnotations ) {
 				// collect constraints if this annotation is a constraint annotation
@@ -426,7 +432,7 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 
 			AnnotatedType parameterAnnotatedType = parameter.getAnnotatedType();
 
-			Set<MetaConstraint<?>> typeArgumentsConstraints = findTypeAnnotationConstraintsForExecutableParameter( executable, i, parameterAnnotatedType );
+			Set<MetaConstraint<?>> typeArgumentsConstraints = findTypeAnnotationConstraintsForExecutableParameter( executable, parameterName, i, parameterAnnotatedType );
 			CascadingMetaDataBuilder cascadingMetaData = findCascadingMetaData( executable, parameters, i, parameterAnnotatedType );
 
 			metaData.add(
@@ -703,15 +709,16 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 	 * Finds type arguments constraints for parameters.
 	 *
 	 * @param executable the executable
+	 * @param parameterName
 	 * @param i the parameter index
 	 *
 	 * @return a set of type arguments constraints, or an empty set if no constrained type arguments are found
 	 */
-	protected Set<MetaConstraint<?>> findTypeAnnotationConstraintsForExecutableParameter(Executable executable, int i, AnnotatedType parameterAnnotatedType) {
+	protected Set<MetaConstraint<?>> findTypeAnnotationConstraintsForExecutableParameter(Executable executable, String parameterName, int i, AnnotatedType parameterAnnotatedType) {
 		try {
 			return findTypeArgumentsConstraints(
 					executable,
-					new TypeArgumentExecutableParameterLocation( executable, i ),
+					new TypeArgumentExecutableParameterLocation( executable, parameterName, i ),
 					parameterAnnotatedType
 			);
 		}
@@ -810,17 +817,18 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 
 	private static class TypeArgumentExecutableParameterLocation implements TypeArgumentLocation {
 		private final Executable executable;
-
+		private final String name;
 		private final int index;
 
-		private TypeArgumentExecutableParameterLocation(Executable executable, int index) {
+		private TypeArgumentExecutableParameterLocation(Executable executable, String name, int index) {
 			this.executable = executable;
+			this.name = name;
 			this.index = index;
 		}
 
 		@Override
 		public ConstraintLocation toConstraintLocation() {
-			return ConstraintLocation.forParameter( executable, index );
+			return ConstraintLocation.forParameter( executable, name, index );
 		}
 	}
 

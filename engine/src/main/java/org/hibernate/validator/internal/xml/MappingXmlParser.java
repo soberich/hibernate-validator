@@ -43,6 +43,7 @@ import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -77,6 +78,8 @@ public class MappingXmlParser {
 
 	private final ClassLoadingHelper classLoadingHelper;
 
+	private final ExecutableParameterNameProvider executableParameterNameProvider;
+
 	private static final Map<String, String> SCHEMAS_BY_VERSION = Collections.unmodifiableMap( getSchemasByVersion() );
 
 	private static Map<String, String> getSchemasByVersion() {
@@ -90,10 +93,11 @@ public class MappingXmlParser {
 	}
 
 	public MappingXmlParser(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager,
-			ClassLoader externalClassLoader) {
+			ExecutableParameterNameProvider executableParameterNameProvider, ClassLoader externalClassLoader) {
 		this.constraintHelper = constraintHelper;
 		this.typeResolutionHelper = typeResolutionHelper;
 		this.valueExtractorManager = valueExtractorManager;
+		this.executableParameterNameProvider = executableParameterNameProvider;
 		this.annotationProcessingOptions = new AnnotationProcessingOptionsImpl();
 		this.defaultSequences = newHashMap();
 		this.constrainedElements = newHashMap();
@@ -134,6 +138,7 @@ public class MappingXmlParser {
 			);
 			ConstrainedExecutableBuilder constrainedExecutableBuilder = new ConstrainedExecutableBuilder(
 					classLoadingHelper,
+					executableParameterNameProvider,
 					metaConstraintBuilder,
 					groupConversionBuilder,
 					annotationProcessingOptions

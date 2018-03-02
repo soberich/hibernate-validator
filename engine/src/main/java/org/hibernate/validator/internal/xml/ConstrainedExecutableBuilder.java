@@ -33,6 +33,7 @@ import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
 import org.hibernate.validator.internal.util.ExecutableHelper;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -62,12 +63,13 @@ class ConstrainedExecutableBuilder {
 	private final ConstrainedParameterBuilder constrainedParameterBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 
-	ConstrainedExecutableBuilder(ClassLoadingHelper classLoadingHelper, MetaConstraintBuilder metaConstraintBuilder,
+	ConstrainedExecutableBuilder(ClassLoadingHelper classLoadingHelper, ExecutableParameterNameProvider executableParameterNameProvider, MetaConstraintBuilder metaConstraintBuilder,
 			GroupConversionBuilder groupConversionBuilder, AnnotationProcessingOptionsImpl annotationProcessingOptions) {
 		this.classLoadingHelper = classLoadingHelper;
 		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.groupConversionBuilder = groupConversionBuilder;
 		this.constrainedParameterBuilder = new ConstrainedParameterBuilder(
+				executableParameterNameProvider,
 				metaConstraintBuilder,
 				groupConversionBuilder,
 				annotationProcessingOptions

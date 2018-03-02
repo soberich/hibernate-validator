@@ -163,7 +163,6 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 
 		ValidationOrder validationOrder = determineGroupValidationOrder( groups );
 		ValueContext<?, Object> valueContext = ValueContext.getLocalExecutionContext(
-				validatorScopedContext.getParameterNameProvider(),
 				object,
 				validationContext.getRootBeanMetaData(),
 				PathImpl.createRootPath()
@@ -255,7 +254,6 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		sanityCheckGroups( groups );
 
 		ValidationContext<T> validationContext = getValidationContextBuilder().forValidateParameters(
-				validatorScopedContext.getParameterNameProvider(),
 				object,
 				executable,
 				parameterValues
@@ -745,7 +743,6 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		ValueContext<?, Object> newValueContext;
 		if ( value != null ) {
 			newValueContext = ValueContext.getLocalExecutionContext(
-					validatorScopedContext.getParameterNameProvider(),
 					value,
 					beanMetaDataManager.getBeanMetaData( value.getClass() ),
 					valueContext.getPropertyPath()
@@ -754,7 +751,6 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		}
 		else {
 			newValueContext = ValueContext.getLocalExecutionContext(
-					validatorScopedContext.getParameterNameProvider(),
 					valueContext.getCurrentBeanType(),
 					valueContext.getCurrentBeanMetaData(),
 					valueContext.getPropertyPath()
@@ -851,7 +847,6 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 
 		ValueContext<Object[], Object> cascadingValueContext = ValueContext.getLocalExecutionContext(
 				beanMetaDataManager,
-				validatorScopedContext.getParameterNameProvider(),
 				parameterValues,
 				executableMetaData.getValidatableParametersMetaData(),
 				PathImpl.createPathForExecutable( executableMetaData )
@@ -985,7 +980,6 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		if ( object != null ) {
 			valueContext = ValueContext.getLocalExecutionContext(
 					beanMetaDataManager,
-					validatorScopedContext.getParameterNameProvider(),
 					object,
 					validatable,
 					PathImpl.createPathForExecutable( executableMetaData )
@@ -994,7 +988,6 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		else {
 			valueContext = ValueContext.getLocalExecutionContext(
 					beanMetaDataManager,
-					validatorScopedContext.getParameterNameProvider(),
 					(Class<T>) null, //the type is not required in this case (only for cascaded validation)
 					validatable,
 					PathImpl.createPathForExecutable( executableMetaData )
@@ -1037,7 +1030,6 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		if ( value != null ) {
 			cascadingValueContext = ValueContext.getLocalExecutionContext(
 					beanMetaDataManager,
-					validatorScopedContext.getParameterNameProvider(),
 					value,
 					executableMetaData.getReturnValueMetaData(),
 					PathImpl.createPathForExecutable( executableMetaData )
@@ -1208,7 +1200,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		validationContext.setValidatedProperty( propertyMetaData.getName() );
 		propertyPath.removeLeafNode();
 
-		return ValueContext.getLocalExecutionContext( validatorScopedContext.getParameterNameProvider(), value, beanMetaData, propertyPath );
+		return ValueContext.getLocalExecutionContext( value, beanMetaData, propertyPath );
 	}
 
 	/**
@@ -1261,7 +1253,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		validationContext.setValidatedProperty( propertyMetaData.getName() );
 		propertyPath.removeLeafNode();
 
-		return ValueContext.getLocalExecutionContext( validatorScopedContext.getParameterNameProvider(), clazz, beanMetaData, propertyPath );
+		return ValueContext.getLocalExecutionContext( clazz, beanMetaData, propertyPath );
 	}
 
 	private boolean isValidationRequired(ValidationContext<?> validationContext,

@@ -32,8 +32,6 @@ import org.hibernate.validator.internal.util.TypeVariables;
  */
 public class ValueContext<T, V> {
 
-	private final ExecutableParameterNameProvider parameterNameProvider;
-
 	/**
 	 * The current bean which gets validated. This is the bean hosting the constraints which get validated.
 	 */
@@ -71,34 +69,29 @@ public class ValueContext<T, V> {
 	 */
 	private ElementType elementType;
 
-	public static <T, V> ValueContext<T, V> getLocalExecutionContext(BeanMetaDataManager beanMetaDataManager,
-			ExecutableParameterNameProvider parameterNameProvider, T value, Validatable validatable, PathImpl propertyPath) {
+	public static <T, V> ValueContext<T, V> getLocalExecutionContext(BeanMetaDataManager beanMetaDataManager, T value, Validatable validatable, PathImpl propertyPath) {
 		@SuppressWarnings("unchecked")
 		Class<T> rootBeanType = (Class<T>) value.getClass();
-		return new ValueContext<>( parameterNameProvider, value, rootBeanType, beanMetaDataManager.getBeanMetaData( rootBeanType ), validatable, propertyPath );
+		return new ValueContext<>( value, rootBeanType, beanMetaDataManager.getBeanMetaData( rootBeanType ), validatable, propertyPath );
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T, V> ValueContext<T, V> getLocalExecutionContext(ExecutableParameterNameProvider parameterNameProvider, T value,
-			BeanMetaData<?> currentBeanMetaData, PathImpl propertyPath) {
+	public static <T, V> ValueContext<T, V> getLocalExecutionContext( T value, BeanMetaData<?> currentBeanMetaData, PathImpl propertyPath) {
 		Class<T> rootBeanType = (Class<T>) value.getClass();
-		return new ValueContext<>( parameterNameProvider, value, rootBeanType, (BeanMetaData<T>) currentBeanMetaData, currentBeanMetaData, propertyPath );
+		return new ValueContext<>( value, rootBeanType, (BeanMetaData<T>) currentBeanMetaData, currentBeanMetaData, propertyPath );
 	}
 
-	public static <T, V> ValueContext<T, V> getLocalExecutionContext(BeanMetaDataManager beanMetaDataManager,
-			ExecutableParameterNameProvider parameterNameProvider, Class<T> rootBeanType, Validatable validatable, PathImpl propertyPath) {
+	public static <T, V> ValueContext<T, V> getLocalExecutionContext(BeanMetaDataManager beanMetaDataManager, Class<T> rootBeanType, Validatable validatable, PathImpl propertyPath) {
 		BeanMetaData<T> rootBeanMetaData = rootBeanType != null ? beanMetaDataManager.getBeanMetaData( rootBeanType ) : null;
-		return new ValueContext<>( parameterNameProvider, null, rootBeanType, rootBeanMetaData, validatable, propertyPath );
+		return new ValueContext<>( null, rootBeanType, rootBeanMetaData, validatable, propertyPath );
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T, V> ValueContext<T, V> getLocalExecutionContext(ExecutableParameterNameProvider parameterNameProvider, Class<T> currentBeanType,
-			BeanMetaData<?> currentBeanMetaData, PathImpl propertyPath) {
-		return new ValueContext<>( parameterNameProvider, null, currentBeanType, (BeanMetaData<T>) currentBeanMetaData, currentBeanMetaData, propertyPath );
+	public static <T, V> ValueContext<T, V> getLocalExecutionContext(Class<T> currentBeanType, BeanMetaData<?> currentBeanMetaData, PathImpl propertyPath) {
+		return new ValueContext<>( null, currentBeanType, (BeanMetaData<T>) currentBeanMetaData, currentBeanMetaData, propertyPath );
 	}
 
-	private ValueContext(ExecutableParameterNameProvider parameterNameProvider, T currentBean, Class<T> currentBeanType, BeanMetaData<T> currentBeanMetaData, Validatable validatable, PathImpl propertyPath) {
-		this.parameterNameProvider = parameterNameProvider;
+	private ValueContext(T currentBean, Class<T> currentBeanType, BeanMetaData<T> currentBeanMetaData, Validatable validatable, PathImpl propertyPath) {
 		this.currentBean = currentBean;
 		this.currentBeanType = currentBeanType;
 		this.currentBeanMetaData = currentBeanMetaData;
@@ -145,7 +138,7 @@ public class ValueContext<T, V> {
 
 	public final void appendNode(ConstraintLocation location) {
 		PathImpl newPath = PathImpl.createCopy( propertyPath );
-		location.appendTo( parameterNameProvider, newPath );
+		location.appendTo( newPath );
 		propertyPath = newPath;
 	}
 

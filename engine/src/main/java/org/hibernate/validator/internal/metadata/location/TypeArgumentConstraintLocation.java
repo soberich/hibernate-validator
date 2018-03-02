@@ -11,7 +11,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.StringHelper;
 import org.hibernate.validator.internal.util.TypeHelper;
@@ -70,8 +69,8 @@ public class TypeArgumentConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public void appendTo(ExecutableParameterNameProvider parameterNameProvider, PathImpl path) {
-		delegate.appendTo( parameterNameProvider, path );
+	public void appendTo(PathImpl path) {
+		delegate.appendTo( path );
 	}
 
 	@Override

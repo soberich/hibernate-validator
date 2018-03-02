@@ -10,7 +10,6 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeHelper;
 
 /**
@@ -57,7 +56,7 @@ class BeanConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public void appendTo(ExecutableParameterNameProvider parameterNameProvider, PathImpl path) {
+	public void appendTo(PathImpl path) {
 		path.addBeanNode();
 	}
 

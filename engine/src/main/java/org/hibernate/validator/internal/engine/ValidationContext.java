@@ -528,7 +528,6 @@ public class ValidationContext<T> {
 		}
 
 		public <T> ValidationContext<T> forValidateParameters(
-				ExecutableParameterNameProvider parameterNameProvider,
 				T rootBean,
 				Executable executable,
 				Object[] executableParameters) {
