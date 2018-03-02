@@ -29,6 +29,7 @@ import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorMan
 import org.hibernate.validator.internal.metadata.aggregated.rule.MethodConfigurationRule;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.descriptor.ExecutableDescriptorImpl;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
@@ -271,21 +272,18 @@ public class ExecutableMetaData extends AbstractConstraintMetaData {
 
 		private final ExecutableHelper executableHelper;
 
-		private final ExecutableParameterNameProvider parameterNameProvider;
-
 		public Builder(
 				Class<?> beanClass,
 				ConstrainedExecutable constrainedExecutable,
 				ConstraintHelper constraintHelper,
 				ExecutableHelper executableHelper,
-				TypeResolutionHelper typeResolutionHelper,
 				ValueExtractorManager valueExtractorManager,
-				ExecutableParameterNameProvider parameterNameProvider,
+				ExecutableParameterNameProvider executableParameterNameProvider,
+				MetaConstraintBuilder metaConstraintBuilder,
 				MethodValidationConfiguration methodValidationConfiguration) {
-			super( beanClass, constraintHelper, typeResolutionHelper, valueExtractorManager );
+			super( beanClass, constraintHelper, valueExtractorManager, executableParameterNameProvider, metaConstraintBuilder );
 
 			this.executableHelper = executableHelper;
-			this.parameterNameProvider = parameterNameProvider;
 			this.kind = constrainedExecutable.getKind();
 			this.executable = constrainedExecutable.getExecutable();
 			this.rules = methodValidationConfiguration.getConfiguredRuleSet();
@@ -407,9 +405,9 @@ public class ExecutableMetaData extends AbstractConstraintMetaData {
 										executable.getDeclaringClass(),
 										oneParameter,
 										constraintHelper,
-										typeResolutionHelper,
 										valueExtractorManager,
-										parameterNameProvider
+										executableParameterNameProvider,
+										metaConstraintBuilder
 								)
 						);
 					}

@@ -14,14 +14,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.validator.internal.cfg.context.DefaultConstraintMapping;
-import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptions;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.Contracts;
-import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;
@@ -41,13 +40,12 @@ public class ProgrammaticMetaDataProvider implements MetaDataProvider {
 	private final AnnotationProcessingOptions annotationProcessingOptions;
 
 	public ProgrammaticMetaDataProvider(ConstraintHelper constraintHelper,
-										TypeResolutionHelper typeResolutionHelper,
-										ValueExtractorManager valueExtractorManager,
-										Set<DefaultConstraintMapping> constraintMappings) {
+			MetaConstraintBuilder metaConstraintBuilder,
+			Set<DefaultConstraintMapping> constraintMappings) {
 		Contracts.assertNotNull( constraintMappings );
 
 		configuredBeans = CollectionHelper.toImmutableMap(
-				createBeanConfigurations( constraintMappings, constraintHelper, typeResolutionHelper, valueExtractorManager )
+				createBeanConfigurations( constraintMappings, constraintHelper, metaConstraintBuilder )
 		);
 
 		assertUniquenessOfConfiguredTypes( constraintMappings );
@@ -69,11 +67,10 @@ public class ProgrammaticMetaDataProvider implements MetaDataProvider {
 	}
 
 	private static Map<String, BeanConfiguration<?>> createBeanConfigurations(Set<DefaultConstraintMapping> mappings, ConstraintHelper constraintHelper,
-			TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+			MetaConstraintBuilder metaConstraintBuilder) {
 		final Map<String, BeanConfiguration<?>> configuredBeans = new HashMap<>();
 		for ( DefaultConstraintMapping mapping : mappings ) {
-			Set<BeanConfiguration<?>> beanConfigurations = mapping.getBeanConfigurations( constraintHelper, typeResolutionHelper,
-					valueExtractorManager );
+			Set<BeanConfiguration<?>> beanConfigurations = mapping.getBeanConfigurations( constraintHelper, metaConstraintBuilder );
 
 			for ( BeanConfiguration<?> beanConfiguration : beanConfigurations ) {
 				configuredBeans.put( beanConfiguration.getBeanClass().getName(), beanConfiguration );
@@ -89,7 +86,7 @@ public class ProgrammaticMetaDataProvider implements MetaDataProvider {
 	 * all the given contexts. So the "merge" pulls together the information for all configured elements, but it will never
 	 * merge several configurations for one given element.
 	 *
-	 * @param contexts set of mapping contexts providing annotation processing options to be merged
+	 * @param mappings set of mapping contexts providing annotation processing options to be merged
 	 *
 	 * @return a single annotation processing options object
 	 */

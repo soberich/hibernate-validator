@@ -10,7 +10,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.hibernate.validator.internal.util.TypeHelper;
+import org.hibernate.validator.internal.util.ValidationTypeResolutionHelper;
 
 /**
  * Bean constraint location (i.e. for a class-level constraint).
@@ -33,11 +33,7 @@ class BeanConstraintLocation implements ConstraintLocation {
 	BeanConstraintLocation(Class<?> declaringClass) {
 		this.declaringClass = declaringClass;
 
-		// HV-623 - create a ParameterizedType in case the class has type parameters. Needed for constraint validator
-		// resolution (HF)
-		typeForValidatorResolution = declaringClass.getTypeParameters().length == 0 ?
-				declaringClass :
-				TypeHelper.parameterizedType( declaringClass, declaringClass.getTypeParameters() );
+		typeForValidatorResolution = ValidationTypeResolutionHelper.getTypeForValidatorResolution( declaringClass );
 	}
 
 	@Override

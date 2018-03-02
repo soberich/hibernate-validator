@@ -19,6 +19,7 @@ import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.descriptor.ParameterDescriptorImpl;
 import org.hibernate.validator.internal.metadata.facets.Cascadable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
@@ -109,7 +110,6 @@ public class ParameterMetaData extends AbstractConstraintMetaData implements Cas
 	}
 
 	public static class Builder extends MetaDataBuilder {
-		private final ExecutableParameterNameProvider parameterNameProvider;
 		private final Type parameterType;
 		private final int parameterIndex;
 		private Executable executableForNameRetrieval;
@@ -118,12 +118,11 @@ public class ParameterMetaData extends AbstractConstraintMetaData implements Cas
 		public Builder(Class<?> beanClass,
 				ConstrainedParameter constrainedParameter,
 				ConstraintHelper constraintHelper,
-				TypeResolutionHelper typeResolutionHelper,
 				ValueExtractorManager valueExtractorManager,
-				ExecutableParameterNameProvider parameterNameProvider) {
-			super( beanClass, constraintHelper, typeResolutionHelper, valueExtractorManager );
+				ExecutableParameterNameProvider parameterNameProvider,
+				MetaConstraintBuilder metaConstraintBuilder) {
+			super( beanClass, constraintHelper, valueExtractorManager, parameterNameProvider, metaConstraintBuilder );
 
-			this.parameterNameProvider = parameterNameProvider;
 			this.parameterType = constrainedParameter.getType();
 			this.parameterIndex = constrainedParameter.getIndex();
 
@@ -166,7 +165,7 @@ public class ParameterMetaData extends AbstractConstraintMetaData implements Cas
 		public ParameterMetaData build() {
 			return new ParameterMetaData(
 					parameterIndex,
-					parameterNameProvider.getParameterNames( executableForNameRetrieval ).get( parameterIndex ),
+					executableParameterNameProvider.getParameterNames( executableForNameRetrieval ).get( parameterIndex ),
 					parameterType,
 					adaptOriginsAndImplicitGroups( getDirectConstraints() ),
 					adaptOriginsAndImplicitGroups( getContainerElementConstraints() ),

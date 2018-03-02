@@ -32,6 +32,7 @@ import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
 import org.hibernate.validator.internal.metadata.aggregated.ExecutableMetaData;
 import org.hibernate.validator.internal.metadata.aggregated.ParameterMetaData;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.provider.MetaDataProvider;
 import org.hibernate.validator.internal.util.ExecutableHelper;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
@@ -55,12 +56,20 @@ public class ParameterMetaDataTest {
 
 	@BeforeMethod
 	public void setupBeanMetaData() {
+		TypeResolutionHelper typeResolutionHelper = new TypeResolutionHelper();
+		ValueExtractorManager valueExtractorManager = new ValueExtractorManager( Collections.emptySet() );
+		ExecutableParameterNameProvider executableParameterNameProvider = new ExecutableParameterNameProvider( new DefaultParameterNameProvider() );
 		BeanMetaDataManager beanMetaDataManager = new BeanMetaDataManager(
 				new ConstraintHelper(),
-				new ExecutableHelper( new TypeResolutionHelper() ),
-				new TypeResolutionHelper(),
-				new ExecutableParameterNameProvider( new DefaultParameterNameProvider() ),
-				new ValueExtractorManager( Collections.emptySet() ),
+				new ExecutableHelper( typeResolutionHelper ),
+				typeResolutionHelper,
+				executableParameterNameProvider,
+				valueExtractorManager,
+				new MetaConstraintBuilder(
+						executableParameterNameProvider,
+						valueExtractorManager,
+						typeResolutionHelper
+				),
 				new ValidationOrderGenerator(),
 				Collections.<MetaDataProvider>emptyList(),
 				new MethodValidationConfiguration.Builder().build()
@@ -125,12 +134,20 @@ public class ParameterMetaDataTest {
 		//
 		// The failure rate on my current VM before fixing the bug is 50%.
 		// Running it in a loop does not improve the odds of failure: all tests will pass or fail for all loop run.
+		ValueExtractorManager valueExtractorManager = new ValueExtractorManager( Collections.emptySet() );
+		ExecutableParameterNameProvider parameterNameProvider = new ExecutableParameterNameProvider( new SkewedParameterNameProvider() );
+		TypeResolutionHelper typeResolutionHelper = new TypeResolutionHelper();
 		BeanMetaDataManager beanMetaDataManager = new BeanMetaDataManager(
 				new ConstraintHelper(),
-				new ExecutableHelper( new TypeResolutionHelper() ),
-				new TypeResolutionHelper(),
-				new ExecutableParameterNameProvider( new SkewedParameterNameProvider() ),
-				new ValueExtractorManager( Collections.emptySet() ),
+				new ExecutableHelper( typeResolutionHelper ),
+				typeResolutionHelper,
+				parameterNameProvider,
+				valueExtractorManager,
+				new MetaConstraintBuilder(
+						parameterNameProvider,
+						valueExtractorManager,
+						typeResolutionHelper
+				),
 				new ValidationOrderGenerator(),
 				Collections.<MetaDataProvider>emptyList(),
 				new MethodValidationConfiguration.Builder().build()

@@ -14,15 +14,19 @@ import java.util.Collections;
 
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.internal.engine.DefaultParameterNameProvider;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.core.MetaConstraints;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.annotation.ConstraintAnnotationDescriptor;
 import org.hibernate.validator.testutil.TestForIssue;
+import org.hibernate.validator.testutils.ConstraintLocationHelper;
+
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -30,17 +34,19 @@ import org.testng.annotations.Test;
  * @author Hardy Ferentschik
  */
 public class MetaConstraintTest {
+	private MetaConstraintBuilder metaConstraintBuilder;
 	private ConstraintHelper constraintHelper;
-	private TypeResolutionHelper typeResolutionHelper;
-	private ValueExtractorManager valueExtractorManager;
 	private Method barMethod;
 	private ConstraintAnnotationDescriptor<NotNull> constraintAnnotationDescriptor;
 
 	@BeforeClass
 	public void setUp() throws Exception {
 		constraintHelper = new ConstraintHelper();
-		typeResolutionHelper = new TypeResolutionHelper();
-		valueExtractorManager = new ValueExtractorManager( Collections.emptySet() );
+		metaConstraintBuilder = new MetaConstraintBuilder(
+				new ExecutableParameterNameProvider( new DefaultParameterNameProvider() ),
+				new ValueExtractorManager( Collections.emptySet() ),
+				new TypeResolutionHelper()
+		);
 		barMethod = Foo.class.getMethod( "getBar" );
 		constraintAnnotationDescriptor = new ConstraintAnnotationDescriptor.Builder<>( barMethod.getAnnotation( NotNull.class ) ).build();
 	}
@@ -51,16 +57,15 @@ public class MetaConstraintTest {
 		ConstraintDescriptorImpl<NotNull> constraintDescriptor1 = new ConstraintDescriptorImpl<>(
 				constraintHelper, barMethod, constraintAnnotationDescriptor, METHOD
 		);
-		ConstraintLocation location1 = ConstraintLocation.forClass( Foo.class );
-		MetaConstraint<NotNull> metaConstraint1 = MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor1, location1 );
+		ConstraintLocation location1 = ConstraintLocationHelper.forClass( Foo.class );
+		MetaConstraint<NotNull> metaConstraint1 = metaConstraintBuilder.create( constraintDescriptor1, location1 );
 
 
 		ConstraintDescriptorImpl<NotNull> constraintDescriptor2 = new ConstraintDescriptorImpl<>(
 				constraintHelper, barMethod, constraintAnnotationDescriptor, METHOD
 		);
-		ConstraintLocation location2 = ConstraintLocation.forClass( Foo.class );
-		MetaConstraint<NotNull> metaConstraint2 = MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor2, location2 );
-
+		ConstraintLocation location2 = ConstraintLocationHelper.forClass( Foo.class );
+		MetaConstraint<NotNull> metaConstraint2 = metaConstraintBuilder.create( constraintDescriptor2, location2 );
 		assertEquals(
 				metaConstraint1, metaConstraint2, "Two MetaConstraint instances for the same constraint should be equal"
 		);

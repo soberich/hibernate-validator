@@ -28,12 +28,11 @@ import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBui
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
 import org.hibernate.validator.internal.util.ExecutableHelper;
-import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -58,18 +57,17 @@ class ConstrainedExecutableBuilder {
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
 	private final ClassLoadingHelper classLoadingHelper;
-	private final MetaConstraintBuilder metaConstraintBuilder;
+	private final XMLMetaConstraintBuilder metaConstraintBuilder;
 	private final GroupConversionBuilder groupConversionBuilder;
 	private final ConstrainedParameterBuilder constrainedParameterBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 
-	ConstrainedExecutableBuilder(ClassLoadingHelper classLoadingHelper, ExecutableParameterNameProvider executableParameterNameProvider, MetaConstraintBuilder metaConstraintBuilder,
+	ConstrainedExecutableBuilder(ClassLoadingHelper classLoadingHelper, XMLMetaConstraintBuilder metaConstraintBuilder,
 			GroupConversionBuilder groupConversionBuilder, AnnotationProcessingOptionsImpl annotationProcessingOptions) {
 		this.classLoadingHelper = classLoadingHelper;
 		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.groupConversionBuilder = groupConversionBuilder;
 		this.constrainedParameterBuilder = new ConstrainedParameterBuilder(
-				executableParameterNameProvider,
 				metaConstraintBuilder,
 				groupConversionBuilder,
 				annotationProcessingOptions
@@ -240,7 +238,7 @@ class ConstrainedExecutableBuilder {
 			return crossParameterConstraints;
 		}
 
-		ConstraintLocation constraintLocation = ConstraintLocation.forCrossParameter( executable );
+		ConstraintLocationBuilder constraintLocation = ConstraintLocationBuilder.forCrossParameter( executable );
 
 		for ( ConstraintType constraintType : crossParameterType.getConstraint() ) {
 			MetaConstraint<?> metaConstraint = metaConstraintBuilder.buildMetaConstraint(
@@ -273,7 +271,7 @@ class ConstrainedExecutableBuilder {
 			return CascadingMetaDataBuilder.nonCascading();
 		}
 
-		ConstraintLocation constraintLocation = ConstraintLocation.forReturnValue( executable );
+		ConstraintLocationBuilder constraintLocation = ConstraintLocationBuilder.forReturnValue( executable );
 		for ( ConstraintType constraint : returnValueType.getConstraint() ) {
 			MetaConstraint<?> metaConstraint = metaConstraintBuilder.buildMetaConstraint(
 					constraintLocation,

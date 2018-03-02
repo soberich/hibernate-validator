@@ -26,7 +26,9 @@ import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorMan
 import org.hibernate.validator.internal.metadata.core.MetaConstraint.ContainerClassTypeParameterAndExtractor;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.metadata.location.TypeArgumentConstraintLocation;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.TypeVariableBindings;
@@ -40,16 +42,27 @@ import com.fasterxml.classmate.ResolvedType;
  * Helper used to create {@link MetaConstraint}s.
  *
  * @author Guillaume Smet
+ * @author Marko Bekhta
  */
-public class MetaConstraints {
+public class MetaConstraintBuilder {
 
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
-	private MetaConstraints() {
+	private final ExecutableParameterNameProvider executableParameterNameProvider;
+	private final ValueExtractorManager valueExtractorManager;
+	private final TypeResolutionHelper typeResolutionHelper;
+
+	public MetaConstraintBuilder(ExecutableParameterNameProvider executableParameterNameProvider, ValueExtractorManager valueExtractorManager, TypeResolutionHelper typeResolutionHelper) {
+		this.executableParameterNameProvider = executableParameterNameProvider;
+		this.valueExtractorManager = valueExtractorManager;
+		this.typeResolutionHelper = typeResolutionHelper;
 	}
 
-	public static <A extends Annotation> MetaConstraint<A> create(TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager,
-			ConstraintDescriptorImpl<A> constraintDescriptor, ConstraintLocation location) {
+	public <A extends Annotation> MetaConstraint<A> create(ConstraintDescriptorImpl<A> constraintDescriptor, ConstraintLocationBuilder locationBuilder) {
+		return create( constraintDescriptor, locationBuilder.getLocation( executableParameterNameProvider ) );
+	}
+
+	public <A extends Annotation> MetaConstraint<A> create(ConstraintDescriptorImpl<A> constraintDescriptor, ConstraintLocation location) {
 		List<ContainerClassTypeParameterAndExtractor> valueExtractionPath = new ArrayList<>();
 
 		Type typeOfValidatedElement = addValueExtractorDescriptorForWrappedValue( typeResolutionHelper, valueExtractorManager, constraintDescriptor,

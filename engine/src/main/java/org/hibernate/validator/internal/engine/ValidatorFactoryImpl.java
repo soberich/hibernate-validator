@@ -42,6 +42,7 @@ import org.hibernate.validator.internal.engine.scripting.DefaultScriptEvaluatorF
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.provider.MetaDataProvider;
 import org.hibernate.validator.internal.metadata.provider.ProgrammaticMetaDataProvider;
 import org.hibernate.validator.internal.metadata.provider.XmlMetaDataProvider;
@@ -132,6 +133,8 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 
 	private final ValidationOrderGenerator validationOrderGenerator;
 
+	private final MetaConstraintBuilder metaConstraintBuilder;
+
 	public ValidatorFactoryImpl(ConfigurationState configurationState) {
 		ClassLoader externalClassLoader = getExternalClassLoader( configurationState );
 
@@ -173,13 +176,15 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 
 		this.validationOrderGenerator = new ValidationOrderGenerator();
 
+		this.metaConstraintBuilder = new MetaConstraintBuilder( validatorFactoryScopedContext.getParameterNameProvider(), valueExtractorManager, typeResolutionHelper );
+
 		// HV-302; don't load XmlMappingParser if not necessary
 		if ( configurationState.getMappingStreams().isEmpty() ) {
 			this.xmlMetaDataProvider = null;
 		}
 		else {
 			this.xmlMetaDataProvider = new XmlMetaDataProvider(
-					constraintHelper, typeResolutionHelper, valueExtractorManager, validatorFactoryScopedContext.getParameterNameProvider(), configurationState.getMappingStreams(), externalClassLoader
+					constraintHelper, metaConstraintBuilder, configurationState.getMappingStreams(), externalClassLoader
 			);
 		}
 
@@ -341,6 +346,7 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 						typeResolutionHelper,
 						validatorFactoryScopedContext.getParameterNameProvider(),
 						valueExtractorManager,
+						metaConstraintBuilder,
 						validationOrderGenerator,
 						buildDataProviders(),
 						methodValidationConfiguration
@@ -367,8 +373,7 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 			metaDataProviders.add(
 					new ProgrammaticMetaDataProvider(
 							constraintHelper,
-							typeResolutionHelper,
-							valueExtractorManager,
+							metaConstraintBuilder,
 							constraintMappings
 					)
 			);

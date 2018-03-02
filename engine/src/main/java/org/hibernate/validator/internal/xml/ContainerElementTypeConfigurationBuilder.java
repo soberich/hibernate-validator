@@ -19,7 +19,7 @@ import java.util.Set;
 import org.hibernate.validator.internal.engine.valueextraction.ArrayElement;
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBuilder;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeHelper;
@@ -29,7 +29,7 @@ import org.hibernate.validator.internal.xml.binding.ConstraintType;
 import org.hibernate.validator.internal.xml.binding.ContainerElementTypeType;
 
 /**
- * Builds the cascading and type argument constraints configuration from the {@link ContainerElementType} elements.
+ * Builds the cascading and type argument constraints configuration from the {@link ContainerElementTypeType} elements.
  *
  * @author Guillaume Smet
  */
@@ -37,9 +37,9 @@ class ContainerElementTypeConfigurationBuilder {
 
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
-	private final ConstraintLocation rootConstraintLocation;
+	private final ConstraintLocationBuilder rootConstraintLocation;
 
-	private final MetaConstraintBuilder metaConstraintBuilder;
+	private final XMLMetaConstraintBuilder metaConstraintBuilder;
 
 	private final GroupConversionBuilder groupConversionBuilder;
 
@@ -47,8 +47,8 @@ class ContainerElementTypeConfigurationBuilder {
 
 	private final Set<ContainerElementTypePath> configuredPaths = new HashSet<>();
 
-	ContainerElementTypeConfigurationBuilder(MetaConstraintBuilder metaConstraintBuilder, GroupConversionBuilder groupConversionBuilder,
-			ConstraintLocation rootConstraintLocation, String defaultPackage) {
+	ContainerElementTypeConfigurationBuilder(XMLMetaConstraintBuilder metaConstraintBuilder, GroupConversionBuilder groupConversionBuilder,
+			ConstraintLocationBuilder rootConstraintLocation, String defaultPackage) {
 		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.groupConversionBuilder = groupConversionBuilder;
 		this.rootConstraintLocation = rootConstraintLocation;
@@ -60,7 +60,7 @@ class ContainerElementTypeConfigurationBuilder {
 	}
 
 	private ContainerElementTypeConfiguration add(ContainerElementTypePath parentConstraintElementTypePath, List<ContainerElementTypeType> xmlContainerElementTypes,
-			ConstraintLocation parentConstraintLocation, Type enclosingType) {
+			ConstraintLocationBuilder parentConstraintLocation, Type enclosingType) {
 		if ( xmlContainerElementTypes.isEmpty() ) {
 			return new ContainerElementTypeConfiguration( Collections.emptySet(), Collections.emptyMap() );
 		}
@@ -92,7 +92,7 @@ class ContainerElementTypeConfigurationBuilder {
 
 			TypeVariable<?> typeParameter = getTypeParameter( typeParameters, typeArgumentIndex, isArray, enclosingType );
 			Type containerElementType = getContainerElementType( enclosingType, typeArgumentIndex, isArray );
-			ConstraintLocation containerElementTypeConstraintLocation = ConstraintLocation.forTypeArgument( parentConstraintLocation, typeParameter,
+			ConstraintLocationBuilder containerElementTypeConstraintLocation = ConstraintLocationBuilder.forTypeArgument( parentConstraintLocation, typeParameter,
 					containerElementType );
 
 			for ( ConstraintType constraint : xmlContainerElementType.getConstraint() ) {

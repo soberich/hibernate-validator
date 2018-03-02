@@ -15,7 +15,7 @@ import java.util.Set;
 
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.xml.binding.ClassType;
@@ -30,12 +30,12 @@ import org.hibernate.validator.internal.xml.binding.GroupSequenceType;
 class ConstrainedTypeBuilder {
 
 	private final ClassLoadingHelper classLoadingHelper;
-	private final MetaConstraintBuilder metaConstraintBuilder;
+	private final XMLMetaConstraintBuilder metaConstraintBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 	private final Map<Class<?>, List<Class<?>>> defaultSequences;
 
 	public ConstrainedTypeBuilder(ClassLoadingHelper classLoadingHelper,
-			MetaConstraintBuilder metaConstraintBuilder,
+			XMLMetaConstraintBuilder metaConstraintBuilder,
 			AnnotationProcessingOptionsImpl annotationProcessingOptions,
 			Map<Class<?>, List<Class<?>>> defaultSequences) {
 		this.classLoadingHelper = classLoadingHelper;
@@ -56,7 +56,7 @@ class ConstrainedTypeBuilder {
 		}
 
 		// constraints
-		ConstraintLocation constraintLocation = ConstraintLocation.forClass( beanClass );
+		ConstraintLocationBuilder constraintLocation = ConstraintLocationBuilder.forClass( beanClass );
 		Set<MetaConstraint<?>> metaConstraints = newHashSet();
 		for ( ConstraintType constraint : classType.getConstraint() ) {
 			MetaConstraint<?> metaConstraint = metaConstraintBuilder.buildMetaConstraint(

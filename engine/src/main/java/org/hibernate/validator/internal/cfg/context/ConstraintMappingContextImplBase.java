@@ -15,9 +15,11 @@ import java.util.Set;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.core.MetaConstraints;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 
 /**
@@ -54,8 +56,7 @@ abstract class ConstraintMappingContextImplBase extends ConstraintContextImplBas
 		constraints.add( constraint );
 	}
 
-	protected Set<MetaConstraint<?>> getConstraints(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+	protected Set<MetaConstraint<?>> getConstraints(ConstraintHelper constraintHelper, MetaConstraintBuilder metaConstraintBuilder) {
 		if ( constraints == null ) {
 			return Collections.emptySet();
 		}
@@ -63,22 +64,22 @@ abstract class ConstraintMappingContextImplBase extends ConstraintContextImplBas
 		Set<MetaConstraint<?>> metaConstraints = newHashSet();
 
 		for ( ConfiguredConstraint<?> configuredConstraint : constraints ) {
-			metaConstraints.add( asMetaConstraint( configuredConstraint, constraintHelper, typeResolutionHelper, valueExtractorManager ) );
+			metaConstraints.add( asMetaConstraint( configuredConstraint, constraintHelper, metaConstraintBuilder ) );
 		}
 
 		return metaConstraints;
 	}
 
 	private <A extends Annotation> MetaConstraint<A> asMetaConstraint(ConfiguredConstraint<A> config, ConstraintHelper constraintHelper,
-			TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+			MetaConstraintBuilder metaConstraintBuilder) {
 		ConstraintDescriptorImpl<A> constraintDescriptor = new ConstraintDescriptorImpl<A>(
 				constraintHelper,
-				config.getLocation().getMember(),
+				config.getLocationBuilder().getMember(),
 				config.createAnnotationDescriptor(),
 				config.getElementType(),
 				getConstraintType()
 		);
 
-		return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor, config.getLocation() );
+		return metaConstraintBuilder.create( constraintDescriptor, config.getLocationBuilder() );
 	}
 }

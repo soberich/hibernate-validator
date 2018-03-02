@@ -16,6 +16,7 @@ import org.hibernate.validator.HibernateValidatorPermission;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.StringHelper;
+import org.hibernate.validator.internal.util.ValidationTypeResolutionHelper;
 import org.hibernate.validator.internal.util.privilegedactions.GetDeclaredField;
 
 /**
@@ -48,7 +49,7 @@ public class FieldConstraintLocation implements ConstraintLocation {
 		this.field = field;
 		this.accessibleField = getAccessible( field );
 		this.propertyName = ReflectionHelper.getPropertyName( field );
-		this.typeForValidatorResolution = ReflectionHelper.boxedType( ReflectionHelper.typeOf( field ) );
+		this.typeForValidatorResolution = ValidationTypeResolutionHelper.getTypeForValidatorResolution( field );
 	}
 
 	@Override

@@ -29,10 +29,11 @@ import org.hibernate.validator.HibernateValidatorPermission;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.core.MetaConstraints;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.descriptor.PropertyDescriptorImpl;
 import org.hibernate.validator.internal.metadata.facets.Cascadable;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.metadata.location.TypeArgumentConstraintLocation;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
@@ -40,8 +41,8 @@ import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.util.CollectionHelper;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
-import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.privilegedactions.GetDeclaredMethod;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;
 
@@ -161,27 +162,27 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 		private boolean cascadingProperty = false;
 		private Method getterAccessibleMethod;
 
-		public Builder(Class<?> beanClass, ConstrainedField constrainedField, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-				ValueExtractorManager valueExtractorManager) {
-			super( beanClass, constraintHelper, typeResolutionHelper, valueExtractorManager );
+		public Builder(Class<?> beanClass, ConstrainedField constrainedField, ConstraintHelper constraintHelper,
+				ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider, MetaConstraintBuilder metaConstraintBuilder) {
+			super( beanClass, constraintHelper, valueExtractorManager, executableParameterNameProvider, metaConstraintBuilder );
 
 			this.propertyName = constrainedField.getField().getName();
 			this.propertyType = ReflectionHelper.typeOf( constrainedField.getField() );
 			add( constrainedField );
 		}
 
-		public Builder(Class<?> beanClass, ConstrainedType constrainedType, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-				ValueExtractorManager valueExtractorManager) {
-			super( beanClass, constraintHelper, typeResolutionHelper, valueExtractorManager );
+		public Builder(Class<?> beanClass, ConstrainedType constrainedType, ConstraintHelper constraintHelper,
+				ValueExtractorManager valueExtractorManager,ExecutableParameterNameProvider executableParameterNameProvider, MetaConstraintBuilder metaConstraintBuilder) {
+			super( beanClass, constraintHelper, valueExtractorManager, executableParameterNameProvider, metaConstraintBuilder );
 
 			this.propertyName = null;
 			this.propertyType = null;
 			add( constrainedType );
 		}
 
-		public Builder(Class<?> beanClass, ConstrainedExecutable constrainedMethod, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-				ValueExtractorManager valueExtractorManager) {
-			super( beanClass, constraintHelper, typeResolutionHelper, valueExtractorManager );
+		public Builder(Class<?> beanClass, ConstrainedExecutable constrainedMethod, ConstraintHelper constraintHelper,
+				ValueExtractorManager valueExtractorManager, ExecutableParameterNameProvider executableParameterNameProvider, MetaConstraintBuilder metaConstraintBuilder) {
+			super( beanClass, constraintHelper, valueExtractorManager, executableParameterNameProvider, metaConstraintBuilder );
 
 			this.propertyName = ReflectionHelper.getPropertyName( constrainedMethod.getExecutable() );
 			this.propertyType = ReflectionHelper.typeOf( constrainedMethod.getExecutable() );
@@ -249,7 +250,7 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 				return constraints;
 			}
 
-			ConstraintLocation getterConstraintLocation = ConstraintLocation.forGetter( getterAccessibleMethod );
+			ConstraintLocationBuilder getterConstraintLocation = ConstraintLocationBuilder.forGetter( getterAccessibleMethod );
 
 			// convert return value locations into getter locations for usage within this meta-data
 			return constraints.stream()
@@ -257,8 +258,8 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 					.collect( Collectors.toSet() );
 		}
 
-		private MetaConstraint<?> withGetterLocation(ConstraintLocation getterConstraintLocation, MetaConstraint<?> constraint) {
-			ConstraintLocation converted = null;
+		private MetaConstraint<?> withGetterLocation(ConstraintLocationBuilder getterConstraintLocation, MetaConstraint<?> constraint) {
+			ConstraintLocationBuilder converted = null;
 
 			// fast track if it's a regular constraint
 			if ( !(constraint.getLocation() instanceof TypeArgumentConstraintLocation) ) {
@@ -286,7 +287,7 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 						converted = getterConstraintLocation;
 					}
 					else {
-						converted = ConstraintLocation.forTypeArgument(
+						converted = ConstraintLocationBuilder.forTypeArgument(
 							converted,
 							( (TypeArgumentConstraintLocation) location ).getTypeParameter(),
 							location.getTypeForValidatorResolution()
@@ -295,7 +296,7 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 				}
 			}
 
-			return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraint.getDescriptor(), converted );
+			return metaConstraintBuilder.create( constraint.getDescriptor(), converted );
 		}
 
 		private String getPropertyName(ConstrainedElement constrainedElement) {

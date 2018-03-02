@@ -23,14 +23,13 @@ import org.hibernate.validator.cfg.context.Cascadable;
 import org.hibernate.validator.cfg.context.ContainerElementConstraintMappingContext;
 import org.hibernate.validator.cfg.context.ContainerElementTarget;
 import org.hibernate.validator.cfg.context.GroupConversionTargetContext;
-import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBuilder;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.util.Contracts;
 import org.hibernate.validator.internal.util.TypeHelper;
-import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
 
@@ -90,7 +89,7 @@ abstract class CascadableConstraintMappingContextImplBase<C extends Cascadable<C
 	}
 
 	public ContainerElementConstraintMappingContext containerElement(ContainerElementTarget parent, TypeConstraintMappingContextImpl<?> typeContext,
-			ConstraintLocation location) {
+			ConstraintLocationBuilder location) {
 
 		// HV-1428 Container element support is disabled for arrays
 		if ( TypeHelper.isArray( configuredType ) ) {
@@ -110,7 +109,7 @@ abstract class CascadableConstraintMappingContextImplBase<C extends Cascadable<C
 	}
 
 	public ContainerElementConstraintMappingContext containerElement(ContainerElementTarget parent, TypeConstraintMappingContextImpl<?> typeContext,
-			ConstraintLocation location, int index, int... nestedIndexes) {
+			ConstraintLocationBuilder location, int index, int... nestedIndexes) {
 		Contracts.assertTrue( index >= 0, "Type argument index must not be negative" );
 
 		// HV-1428 Container element support is disabled for arrays
@@ -148,10 +147,10 @@ abstract class CascadableConstraintMappingContextImplBase<C extends Cascadable<C
 		return isCascading;
 	}
 
-	protected Set<MetaConstraint<?>> getTypeArgumentConstraints(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+	protected Set<MetaConstraint<?>> getTypeArgumentConstraints(ConstraintHelper constraintHelper, MetaConstraintBuilder metaConstraintBuilder) {
 		return containerElementContexts.values()
 			.stream()
-			.map( t -> t.build( constraintHelper, typeResolutionHelper, valueExtractorManager ) )
+			.map( t -> t.build( constraintHelper, metaConstraintBuilder ) )
 			.flatMap( Set::stream )
 			.collect( Collectors.toSet() );
 	}

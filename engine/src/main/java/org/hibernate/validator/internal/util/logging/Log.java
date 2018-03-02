@@ -48,6 +48,7 @@ import javax.xml.stream.XMLStreamException;
 import org.hibernate.validator.internal.engine.messageinterpolation.parser.MessageDescriptorFormatException;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.util.logging.formatter.ClassObjectFormatter;
 import org.hibernate.validator.internal.util.logging.formatter.CollectionOfClassesObjectFormatter;
 import org.hibernate.validator.internal.util.logging.formatter.CollectionOfObjectsToStringFormatter;
@@ -751,7 +752,7 @@ public interface Log extends BasicLogger {
 	ValidationException getReturnValueIsNotAValidCallException();
 
 	@Message(id = 217, value = "The same container element type %2$s is configured more than once for location %1$s via the XML mapping configuration.")
-	ValidationException getContainerElementTypeHasAlreadyBeenConfiguredViaXmlMappingConfigurationException(ConstraintLocation rootConstraintLocation,
+	ValidationException getContainerElementTypeHasAlreadyBeenConfiguredViaXmlMappingConfigurationException(ConstraintLocationBuilder rootConstraintLocation,
 			ContainerElementTypePath path);
 
 	@Message(id = 218, value = "Having parallel definitions of value extractors on a given class is not allowed: %s.")

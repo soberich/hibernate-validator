@@ -14,7 +14,7 @@ import org.hibernate.validator.cfg.context.MethodConstraintMappingContext;
 import org.hibernate.validator.cfg.context.ParameterConstraintMappingContext;
 import org.hibernate.validator.cfg.context.ReturnValueConstraintMappingContext;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 
 /**
@@ -80,7 +80,7 @@ final class ReturnValueConstraintMappingContextImpl
 	@Override
 	public ContainerElementConstraintMappingContext containerElementType() {
 		return super.containerElement(
-				this, executableContext.getTypeContext(), ConstraintLocation.forReturnValue( executableContext.getExecutable() )
+				this, executableContext.getTypeContext(), ConstraintLocationBuilder.forReturnValue( executableContext.getExecutable() )
 		);
 	}
 
@@ -89,7 +89,7 @@ final class ReturnValueConstraintMappingContextImpl
 		return super.containerElement(
 				this,
 				executableContext.getTypeContext(),
-				ConstraintLocation.forReturnValue( executableContext.getExecutable()  ),
+				ConstraintLocationBuilder.forReturnValue( executableContext.getExecutable()  ),
 				index,
 				nestedIndexes
 		);

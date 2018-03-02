@@ -14,6 +14,7 @@ import java.util.Set;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptions;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
@@ -39,14 +40,11 @@ public class XmlMetaDataProvider implements MetaDataProvider {
 	private final AnnotationProcessingOptions annotationProcessingOptions;
 
 	public XmlMetaDataProvider(ConstraintHelper constraintHelper,
-			TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager,
-			ExecutableParameterNameProvider executableParameterNameProvider,
+			MetaConstraintBuilder metaConstraintBuilder,
 			Set<InputStream> mappingStreams,
 			ClassLoader externalClassLoader) {
 
-		MappingXmlParser mappingParser = new MappingXmlParser( constraintHelper, typeResolutionHelper, valueExtractorManager,
-				executableParameterNameProvider, externalClassLoader );
+		MappingXmlParser mappingParser = new MappingXmlParser( constraintHelper, metaConstraintBuilder, externalClassLoader );
 		mappingParser.parse( mappingStreams );
 
 		configuredBeans = CollectionHelper.toImmutableMap( createBeanConfigurations( mappingParser ) );

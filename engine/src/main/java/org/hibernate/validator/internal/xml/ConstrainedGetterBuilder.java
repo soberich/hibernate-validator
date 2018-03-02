@@ -23,7 +23,7 @@ import java.util.Set;
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBuilder;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
@@ -46,10 +46,10 @@ class ConstrainedGetterBuilder {
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
 	private final GroupConversionBuilder groupConversionBuilder;
-	private final MetaConstraintBuilder metaConstraintBuilder;
+	private final XMLMetaConstraintBuilder metaConstraintBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 
-	ConstrainedGetterBuilder(MetaConstraintBuilder metaConstraintBuilder, GroupConversionBuilder groupConversionBuilder,
+	ConstrainedGetterBuilder(XMLMetaConstraintBuilder metaConstraintBuilder, GroupConversionBuilder groupConversionBuilder,
 			AnnotationProcessingOptionsImpl annotationProcessingOptions) {
 		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.groupConversionBuilder = groupConversionBuilder;
@@ -64,7 +64,7 @@ class ConstrainedGetterBuilder {
 		for ( GetterType getterType : getterList ) {
 			String getterName = getterType.getName();
 			Method getter = findGetter( beanClass, getterName, alreadyProcessedGetterNames );
-			ConstraintLocation constraintLocation = ConstraintLocation.forGetter( getter );
+			ConstraintLocationBuilder constraintLocation = ConstraintLocationBuilder.forGetter( getter );
 
 			Set<MetaConstraint<?>> metaConstraints = newHashSet();
 			for ( ConstraintType constraint : getterType.getConstraint() ) {

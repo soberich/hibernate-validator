@@ -50,13 +50,16 @@ import org.hibernate.validator.cfg.defs.SizeDef;
 import org.hibernate.validator.constraints.Range;
 import org.hibernate.validator.group.GroupSequenceProvider;
 import org.hibernate.validator.internal.cfg.context.DefaultConstraintMapping;
+import org.hibernate.validator.internal.engine.DefaultParameterNameProvider;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 import org.hibernate.validator.testutils.ValidatorUtil;
@@ -536,10 +539,16 @@ public class ConstraintMappingTest {
 	}
 
 	private <T> BeanConfiguration<T> getBeanConfiguration(Class<T> type) {
+		TypeResolutionHelper typeResolutionHelper = new TypeResolutionHelper();
+		ValueExtractorManager valueExtractorManager = new ValueExtractorManager( Collections.emptySet() );
+		ExecutableParameterNameProvider executableParameterNameProvider = new ExecutableParameterNameProvider( new DefaultParameterNameProvider() );
 		Set<BeanConfiguration<?>> beanConfigurations = mapping.getBeanConfigurations(
 				new ConstraintHelper(),
-				new TypeResolutionHelper(),
-				new ValueExtractorManager( Collections.emptySet() )
+				new MetaConstraintBuilder(
+						executableParameterNameProvider,
+						valueExtractorManager,
+						typeResolutionHelper
+				)
 		);
 
 		for ( BeanConfiguration<?> beanConfiguration : beanConfigurations ) {

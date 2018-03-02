@@ -18,15 +18,18 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.internal.engine.DefaultParameterNameProvider;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.provider.AnnotationMetaDataProvider;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -44,8 +47,7 @@ public class TypeAnnotationMetaDataRetrievalTest extends AnnotationMetaDataProvi
 	public void setup() {
 		provider = new AnnotationMetaDataProvider(
 				new ConstraintHelper(),
-				new TypeResolutionHelper(),
-				new ValueExtractorManager( Collections.emptySet() ),
+				new MetaConstraintBuilder( new ExecutableParameterNameProvider( new DefaultParameterNameProvider() ), new ValueExtractorManager( Collections.emptySet() ), new TypeResolutionHelper() ),
 				new AnnotationProcessingOptionsImpl()
 		);
 	}

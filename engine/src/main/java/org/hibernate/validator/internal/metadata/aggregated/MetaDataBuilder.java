@@ -15,10 +15,10 @@ import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorMan
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.ConstraintOrigin;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.core.MetaConstraints;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
-import org.hibernate.validator.internal.util.TypeResolutionHelper;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 
 /**
  * Builds {@link ConstraintMetaData} instances for the
@@ -30,19 +30,22 @@ import org.hibernate.validator.internal.util.TypeResolutionHelper;
 public abstract class MetaDataBuilder {
 
 	protected final ConstraintHelper constraintHelper;
-	protected final TypeResolutionHelper typeResolutionHelper;
 	protected final ValueExtractorManager valueExtractorManager;
+	protected final ExecutableParameterNameProvider executableParameterNameProvider;
+	protected final MetaConstraintBuilder metaConstraintBuilder;
 
 	private final Class<?> beanClass;
 	private final Set<MetaConstraint<?>> directConstraints = newHashSet();
 	private final Set<MetaConstraint<?>> containerElementsConstraints = newHashSet();
 	private boolean isCascading = false;
 
-	protected MetaDataBuilder(Class<?> beanClass, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+	protected MetaDataBuilder(Class<?> beanClass, ConstraintHelper constraintHelper, ValueExtractorManager valueExtractorManager,
+			ExecutableParameterNameProvider executableParameterNameProvider, MetaConstraintBuilder metaConstraintBuilder) {
 		this.beanClass = beanClass;
 		this.constraintHelper = constraintHelper;
-		this.typeResolutionHelper = typeResolutionHelper;
 		this.valueExtractorManager = valueExtractorManager;
+		this.executableParameterNameProvider = executableParameterNameProvider;
+		this.metaConstraintBuilder = metaConstraintBuilder;
 	}
 
 	/**
@@ -137,7 +140,7 @@ public abstract class MetaDataBuilder {
 				constraint.getDescriptor().getConstraintType()
 		);
 
-		return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, descriptor, constraint.getLocation() );
+		return metaConstraintBuilder.create( descriptor, constraint.getLocation() );
 	}
 
 	/**

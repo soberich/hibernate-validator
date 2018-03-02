@@ -21,7 +21,7 @@ import java.util.Set;
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBuilder;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
 import org.hibernate.validator.internal.util.ReflectionHelper;
@@ -42,10 +42,10 @@ class ConstrainedFieldBuilder {
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
 	private final GroupConversionBuilder groupConversionBuilder;
-	private final MetaConstraintBuilder metaConstraintBuilder;
+	private final XMLMetaConstraintBuilder metaConstraintBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 
-	ConstrainedFieldBuilder(MetaConstraintBuilder metaConstraintBuilder, GroupConversionBuilder groupConversionBuilder,
+	ConstrainedFieldBuilder(XMLMetaConstraintBuilder metaConstraintBuilder, GroupConversionBuilder groupConversionBuilder,
 			AnnotationProcessingOptionsImpl annotationProcessingOptions) {
 		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.groupConversionBuilder = groupConversionBuilder;
@@ -59,7 +59,7 @@ class ConstrainedFieldBuilder {
 		List<String> alreadyProcessedFieldNames = new ArrayList<>();
 		for ( FieldType fieldType : fields ) {
 			Field field = findField( beanClass, fieldType.getName(), alreadyProcessedFieldNames );
-			ConstraintLocation constraintLocation = ConstraintLocation.forField( field );
+			ConstraintLocationBuilder constraintLocation = ConstraintLocationBuilder.forField( field );
 			Set<MetaConstraint<?>> metaConstraints = new HashSet<>();
 
 			for ( ConstraintType constraint : fieldType.getConstraint() ) {

@@ -39,6 +39,7 @@ import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorMan
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptions;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
@@ -68,8 +69,7 @@ public class MappingXmlParser {
 
 	private final Set<Class<?>> processedClasses = newHashSet();
 	private final ConstraintHelper constraintHelper;
-	private final TypeResolutionHelper typeResolutionHelper;
-	private final ValueExtractorManager valueExtractorManager;
+	private final MetaConstraintBuilder metaConstraintBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 	private final Map<Class<?>, List<Class<?>>> defaultSequences;
 	private final Map<Class<?>, Set<ConstrainedElement>> constrainedElements;
@@ -77,8 +77,6 @@ public class MappingXmlParser {
 	private final XmlParserHelper xmlParserHelper;
 
 	private final ClassLoadingHelper classLoadingHelper;
-
-	private final ExecutableParameterNameProvider executableParameterNameProvider;
 
 	private static final Map<String, String> SCHEMAS_BY_VERSION = Collections.unmodifiableMap( getSchemasByVersion() );
 
@@ -92,12 +90,9 @@ public class MappingXmlParser {
 		return schemasByVersion;
 	}
 
-	public MappingXmlParser(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager,
-			ExecutableParameterNameProvider executableParameterNameProvider, ClassLoader externalClassLoader) {
+	public MappingXmlParser(ConstraintHelper constraintHelper, MetaConstraintBuilder metaConstraintBuilder, ClassLoader externalClassLoader) {
 		this.constraintHelper = constraintHelper;
-		this.typeResolutionHelper = typeResolutionHelper;
-		this.valueExtractorManager = valueExtractorManager;
-		this.executableParameterNameProvider = executableParameterNameProvider;
+		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.annotationProcessingOptions = new AnnotationProcessingOptionsImpl();
 		this.defaultSequences = newHashMap();
 		this.constrainedElements = newHashMap();
@@ -117,11 +112,10 @@ public class MappingXmlParser {
 			// itself; Wrapping it here avoids that all calling code bases need to have these permissions as well
 			JAXBContext jc = run( NewJaxbContext.action( ConstraintMappingsType.class ) );
 
-			MetaConstraintBuilder metaConstraintBuilder = new MetaConstraintBuilder(
-					classLoadingHelper,
-					constraintHelper,
-					typeResolutionHelper,
-					valueExtractorManager
+			XMLMetaConstraintBuilder metaConstraintBuilder = new XMLMetaConstraintBuilder(
+					this.classLoadingHelper,
+					this.constraintHelper,
+					this.metaConstraintBuilder
 			);
 			GroupConversionBuilder groupConversionBuilder = new GroupConversionBuilder( classLoadingHelper );
 
@@ -138,7 +132,6 @@ public class MappingXmlParser {
 			);
 			ConstrainedExecutableBuilder constrainedExecutableBuilder = new ConstrainedExecutableBuilder(
 					classLoadingHelper,
-					executableParameterNameProvider,
 					metaConstraintBuilder,
 					groupConversionBuilder,
 					annotationProcessingOptions

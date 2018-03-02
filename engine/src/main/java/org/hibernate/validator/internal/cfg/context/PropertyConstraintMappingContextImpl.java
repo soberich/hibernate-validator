@@ -17,16 +17,15 @@ import org.hibernate.validator.cfg.context.ConstructorConstraintMappingContext;
 import org.hibernate.validator.cfg.context.ContainerElementConstraintMappingContext;
 import org.hibernate.validator.cfg.context.MethodConstraintMappingContext;
 import org.hibernate.validator.cfg.context.PropertyConstraintMappingContext;
-import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl.ConstraintType;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedField;
 import org.hibernate.validator.internal.util.ReflectionHelper;
-import org.hibernate.validator.internal.util.TypeResolutionHelper;
 
 /**
  * Constraint mapping creational context which allows to configure the constraints for one bean property.
@@ -43,17 +42,17 @@ final class PropertyConstraintMappingContextImpl
 
 	// either Field or Method
 	private final Member member;
-	private final ConstraintLocation location;
+	private final ConstraintLocationBuilder location;
 
 	PropertyConstraintMappingContextImpl(TypeConstraintMappingContextImpl<?> typeContext, Member member) {
 		super( typeContext.getConstraintMapping(), ReflectionHelper.typeOf( member ) );
 		this.typeContext = typeContext;
 		this.member = member;
 		if ( member instanceof Field ) {
-			this.location = ConstraintLocation.forField( (Field) member );
+			this.location = ConstraintLocationBuilder.forField( (Field) member );
 		}
 		else {
-			this.location = ConstraintLocation.forGetter( (Method) member );
+			this.location = ConstraintLocationBuilder.forGetter( (Method) member );
 		}
 	}
 
@@ -117,13 +116,13 @@ final class PropertyConstraintMappingContextImpl
 		return super.containerElement( this, typeContext, location, index, nestedIndexes );
 	}
 
-	ConstrainedElement build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
+	ConstrainedElement build(ConstraintHelper constraintHelper, MetaConstraintBuilder metaConstraintBuilder) {
 		if ( member instanceof Field ) {
 			return new ConstrainedField(
 					ConfigurationSource.API,
 					(Field) member,
-					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
-					getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
+					getConstraints( constraintHelper, metaConstraintBuilder ),
+					getTypeArgumentConstraints( constraintHelper, metaConstraintBuilder ),
 					getCascadingMetaDataBuilder()
 			);
 		}
@@ -131,8 +130,8 @@ final class PropertyConstraintMappingContextImpl
 			return new ConstrainedExecutable(
 					ConfigurationSource.API,
 					(Executable) member,
-					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
-					getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
+					getConstraints( constraintHelper, metaConstraintBuilder ),
+					getTypeArgumentConstraints( constraintHelper, metaConstraintBuilder ),
 					getCascadingMetaDataBuilder()
 			);
 		}

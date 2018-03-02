@@ -11,7 +11,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.hibernate.validator.internal.util.ReflectionHelper;
+import org.hibernate.validator.internal.util.ValidationTypeResolutionHelper;
 
 /**
  * Executable return value constraint location.
@@ -26,7 +26,7 @@ class ReturnValueConstraintLocation implements ConstraintLocation {
 
 	ReturnValueConstraintLocation(Executable executable) {
 		this.executable = executable;
-		this.typeForValidatorResolution = ReflectionHelper.boxedType( ReflectionHelper.typeOf( executable ) );
+		this.typeForValidatorResolution = ValidationTypeResolutionHelper.getTypeForValidatorResolution( executable );
 	}
 
 	@Override

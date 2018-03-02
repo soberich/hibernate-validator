@@ -23,6 +23,7 @@ import org.hibernate.validator.internal.engine.constraintdefinition.ConstraintDe
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.util.Contracts;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
@@ -81,17 +82,15 @@ public class DefaultConstraintMapping implements ConstraintMapping {
 	 * Returns all bean configurations configured through this constraint mapping.
 	 *
 	 * @param constraintHelper constraint helper required for building constraint descriptors
-	 * @param typeResolutionHelper type resolution helper
-	 * @param valueExtractorManager the {@link ValueExtractor} manager
+	 * @param metaConstraintBuilder the meta constraint builder
 	 *
 	 * @return a set of {@link BeanConfiguration}s with an element for each type configured through this mapping
 	 */
-	public Set<BeanConfiguration<?>> getBeanConfigurations(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+	public Set<BeanConfiguration<?>> getBeanConfigurations(ConstraintHelper constraintHelper, MetaConstraintBuilder metaConstraintBuilder) {
 		Set<BeanConfiguration<?>> configurations = newHashSet();
 
 		for ( TypeConstraintMappingContextImpl<?> typeContext : typeContexts ) {
-			configurations.add( typeContext.build( constraintHelper, typeResolutionHelper, valueExtractorManager ) );
+			configurations.add( typeContext.build( constraintHelper, metaConstraintBuilder ) );
 		}
 
 		return configurations;

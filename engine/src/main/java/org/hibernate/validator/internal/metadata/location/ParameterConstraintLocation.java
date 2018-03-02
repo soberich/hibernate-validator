@@ -11,8 +11,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
-import org.hibernate.validator.internal.util.ReflectionHelper;
+import org.hibernate.validator.internal.util.ValidationTypeResolutionHelper;
 
 /**
  * Parameter constraint location.
@@ -31,7 +30,7 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 		this.executable = executable;
 		this.name = name;
 		this.index = index;
-		this.typeForValidatorResolution = ReflectionHelper.boxedType( ReflectionHelper.typeOf( executable, index ) );
+		this.typeForValidatorResolution = ValidationTypeResolutionHelper.getTypeForValidatorResolution( executable, index );
 	}
 
 	@Override

@@ -26,9 +26,10 @@ import javax.xml.bind.JAXBElement;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.core.MetaConstraints;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.annotation.AnnotationDescriptor;
 import org.hibernate.validator.internal.util.annotation.ConstraintAnnotationDescriptor;
@@ -46,7 +47,7 @@ import org.hibernate.validator.internal.xml.binding.PayloadType;
  *
  * @author Hardy Ferentschik
  */
-class MetaConstraintBuilder {
+class XMLMetaConstraintBuilder {
 
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
@@ -55,19 +56,16 @@ class MetaConstraintBuilder {
 
 	private final ClassLoadingHelper classLoadingHelper;
 	private final ConstraintHelper constraintHelper;
-	private final TypeResolutionHelper typeResolutionHelper;
-	private final ValueExtractorManager valueExtractorManager;
+	private final MetaConstraintBuilder metaConstraintBuilder;
 
-	MetaConstraintBuilder(ClassLoadingHelper classLoadingHelper, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+	XMLMetaConstraintBuilder(ClassLoadingHelper classLoadingHelper, ConstraintHelper constraintHelper, MetaConstraintBuilder metaConstraintBuilder) {
 		this.classLoadingHelper = classLoadingHelper;
 		this.constraintHelper = constraintHelper;
-		this.typeResolutionHelper = typeResolutionHelper;
-		this.valueExtractorManager = valueExtractorManager;
+		this.metaConstraintBuilder = metaConstraintBuilder;
 	}
 
 	@SuppressWarnings("unchecked")
-	<A extends Annotation> MetaConstraint<A> buildMetaConstraint(ConstraintLocation constraintLocation,
+	<A extends Annotation> MetaConstraint<A> buildMetaConstraint(ConstraintLocationBuilder constraintLocationBuilder,
 																			   ConstraintType constraint,
 																			   java.lang.annotation.ElementType type,
 																			   String defaultPackage,
@@ -103,13 +101,14 @@ class MetaConstraintBuilder {
 			throw LOG.getUnableToCreateAnnotationForConfiguredConstraintException( e );
 		}
 
+
 		// we set initially ConstraintOrigin.DEFINED_LOCALLY for all xml configured constraints
 		// later we will make copies of this constraint descriptor when needed and adjust the ConstraintOrigin
 		ConstraintDescriptorImpl<A> constraintDescriptor = new ConstraintDescriptorImpl<A>(
-				constraintHelper, constraintLocation.getMember(), annotationDescriptor, type, constraintType
+				constraintHelper, constraintLocationBuilder.getMember(), annotationDescriptor, type, constraintType
 		);
 
-		return MetaConstraints.create( typeResolutionHelper, valueExtractorManager, constraintDescriptor, constraintLocation );
+		return metaConstraintBuilder.create( constraintDescriptor, constraintLocationBuilder );
 	}
 
 	private <A extends Annotation> Annotation buildAnnotation(AnnotationType annotationType, Class<A> returnType, String defaultPackage) {

@@ -23,6 +23,7 @@ import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorMan
 import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
 import org.hibernate.validator.internal.metadata.aggregated.PropertyMetaData;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.provider.MetaDataProvider;
 import org.hibernate.validator.internal.util.ExecutableHelper;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
@@ -39,12 +40,20 @@ public class PropertyMetaDataTest {
 
 	@BeforeMethod
 	public void setupBeanMetaDataManager() {
+		TypeResolutionHelper typeResolutionHelper = new TypeResolutionHelper();
+		ValueExtractorManager valueExtractorManager = new ValueExtractorManager( Collections.emptySet() );
+		ExecutableParameterNameProvider executableParameterNameProvider = new ExecutableParameterNameProvider( new DefaultParameterNameProvider() );
 		beanMetaDataManager = new BeanMetaDataManager(
 				new ConstraintHelper(),
-				new ExecutableHelper( new TypeResolutionHelper() ),
-				new TypeResolutionHelper(),
-				new ExecutableParameterNameProvider( new DefaultParameterNameProvider() ),
-				new ValueExtractorManager( Collections.emptySet() ),
+				new ExecutableHelper( typeResolutionHelper ),
+				typeResolutionHelper,
+				executableParameterNameProvider,
+				valueExtractorManager,
+				new MetaConstraintBuilder(
+						executableParameterNameProvider,
+						valueExtractorManager,
+						typeResolutionHelper
+				),
 				new ValidationOrderGenerator(),
 				Collections.<MetaDataProvider>emptyList(),
 				new MethodValidationConfiguration.Builder().build()

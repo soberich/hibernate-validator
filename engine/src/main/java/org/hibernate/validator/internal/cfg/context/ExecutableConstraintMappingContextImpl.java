@@ -20,10 +20,12 @@ import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorMan
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBuilder;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
+import org.hibernate.validator.internal.metadata.core.MetaConstraintBuilder;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
+import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
 import org.hibernate.validator.internal.util.logging.Log;
@@ -104,27 +106,26 @@ abstract class ExecutableConstraintMappingContextImpl {
 		return typeContext;
 	}
 
-	public ConstrainedElement build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+	public ConstrainedElement build(ConstraintHelper constraintHelper, MetaConstraintBuilder metaConstraintBuilder) {
+
 		return new ConstrainedExecutable(
 				ConfigurationSource.API,
 				executable,
-				getParameters( constraintHelper, typeResolutionHelper, valueExtractorManager ),
-				crossParameterContext != null ? crossParameterContext.getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ) : Collections.<MetaConstraint<?>>emptySet(),
-				returnValueContext != null ? returnValueContext.getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ) : Collections.<MetaConstraint<?>>emptySet(),
-				returnValueContext != null ? returnValueContext.getTypeArgumentConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ) : Collections.<MetaConstraint<?>>emptySet(),
+				getParameters( constraintHelper, metaConstraintBuilder ),
+				crossParameterContext != null ? crossParameterContext.getConstraints( constraintHelper, metaConstraintBuilder ) : Collections.<MetaConstraint<?>>emptySet(),
+				returnValueContext != null ? returnValueContext.getConstraints( constraintHelper, metaConstraintBuilder ) : Collections.<MetaConstraint<?>>emptySet(),
+				returnValueContext != null ? returnValueContext.getTypeArgumentConstraints( constraintHelper, metaConstraintBuilder ) : Collections.<MetaConstraint<?>>emptySet(),
 				returnValueContext != null ? returnValueContext.getCascadingMetaDataBuilder() : CascadingMetaDataBuilder.nonCascading()
 		);
 	}
 
-	private List<ConstrainedParameter> getParameters(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-			ValueExtractorManager valueExtractorManager) {
+	private List<ConstrainedParameter> getParameters(ConstraintHelper constraintHelper, MetaConstraintBuilder metaConstraintBuilder) {
 		List<ConstrainedParameter> constrainedParameters = newArrayList();
 
 		for ( int i = 0; i < parameterContexts.length; i++ ) {
 			ParameterConstraintMappingContextImpl parameter = parameterContexts[i];
 			if ( parameter != null ) {
-				constrainedParameters.add( parameter.build( constraintHelper, typeResolutionHelper, valueExtractorManager ) );
+				constrainedParameters.add( parameter.build( constraintHelper, metaConstraintBuilder ) );
 			}
 			else {
 				constrainedParameters.add(

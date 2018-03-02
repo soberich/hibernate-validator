@@ -20,10 +20,9 @@ import java.util.Set;
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaDataBuilder;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
-import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
+import org.hibernate.validator.internal.metadata.location.ConstraintLocationBuilder;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
-import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 import org.hibernate.validator.internal.util.ReflectionHelper;
 import org.hibernate.validator.internal.xml.ContainerElementTypeConfigurationBuilder.ContainerElementTypeConfiguration;
 import org.hibernate.validator.internal.xml.binding.ConstraintType;
@@ -37,16 +36,13 @@ import org.hibernate.validator.internal.xml.binding.ParameterType;
  */
 class ConstrainedParameterBuilder {
 
-	private final ExecutableParameterNameProvider executableParameterNameProvider;
 	private final GroupConversionBuilder groupConversionBuilder;
-	private final MetaConstraintBuilder metaConstraintBuilder;
+	private final XMLMetaConstraintBuilder metaConstraintBuilder;
 	private final AnnotationProcessingOptionsImpl annotationProcessingOptions;
 
-	ConstrainedParameterBuilder(ExecutableParameterNameProvider executableParameterNameProvider,
-			MetaConstraintBuilder metaConstraintBuilder,
+	ConstrainedParameterBuilder(XMLMetaConstraintBuilder metaConstraintBuilder,
 			GroupConversionBuilder groupConversionBuilder,
 			AnnotationProcessingOptionsImpl annotationProcessingOptions) {
-		this.executableParameterNameProvider = executableParameterNameProvider;
 		this.metaConstraintBuilder = metaConstraintBuilder;
 		this.groupConversionBuilder = groupConversionBuilder;
 		this.annotationProcessingOptions = annotationProcessingOptions;
@@ -56,10 +52,9 @@ class ConstrainedParameterBuilder {
 																		Executable executable,
 																		String defaultPackage) {
 		List<ConstrainedParameter> constrainedParameters = newArrayList();
-		List<String> parameterNames = executableParameterNameProvider.getParameterNames( executable );
 		int i = 0;
 		for ( ParameterType parameterType : parameterList ) {
-			ConstraintLocation constraintLocation = ConstraintLocation.forParameter( executable, parameterNames.get( i ), i );
+			ConstraintLocationBuilder constraintLocation = ConstraintLocationBuilder.forParameter( executable, i );
 			Type type = ReflectionHelper.typeOf( executable, i );
 
 			Set<MetaConstraint<?>> metaConstraints = new HashSet<>();
