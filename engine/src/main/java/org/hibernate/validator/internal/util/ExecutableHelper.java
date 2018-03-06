@@ -90,12 +90,59 @@ public final class ExecutableHelper {
 			return false;
 		}
 
-		if ( !Modifier.isPublic( superTypeMethod.getModifiers() ) && !Modifier.isProtected( superTypeMethod.getModifiers() )
-				&& !superTypeMethod.getDeclaringClass().getPackage().equals( subTypeMethod.getDeclaringClass().getPackage() ) ) {
+		if ( !isOneMethodVisibleToAnother( subTypeMethod, superTypeMethod ) ) {
 			return false;
 		}
 
 		return instanceMethodParametersResolveToSameTypes( subTypeMethod, superTypeMethod );
+	}
+
+	public boolean same(Method left, Method right) {
+		Contracts.assertValueNotNull( left, "left" );
+		Contracts.assertValueNotNull( right, "right" );
+
+		if ( left.equals( right ) ) {
+			return true;
+		}
+
+		if ( !left.getName().equals( right.getName() ) ) {
+			return false;
+		}
+
+		if ( left.getDeclaringClass().equals( right.getDeclaringClass() ) ) {
+			return false;
+		}
+
+		if ( left.getParameterTypes().length != right.getParameterTypes().length ) {
+			return false;
+		}
+
+		// if at least one method from a pair is static - they are different methods
+		if ( Modifier.isStatic( right.getModifiers() ) || Modifier.isStatic( left.getModifiers() ) ) {
+			return false;
+		}
+
+		// HV-861 Bridge method should be ignored. Classmates type/member resolution will take care of proper
+		// override detection without considering bridge methods
+		if ( left.isBridge() || right.isBridge() ) {
+			return false;
+		}
+
+		// if one of the methods is private methods are different
+		if ( Modifier.isPrivate( left.getModifiers() ) || Modifier.isPrivate( right.getModifiers() ) ) {
+			return false;
+		}
+
+		if ( !isOneMethodVisibleToAnother( left, right ) || !isOneMethodVisibleToAnother( right, left ) ) {
+			return false;
+		}
+
+		return instanceMethodParametersResolveToSameTypes( left, right );
+	}
+
+	private static boolean isOneMethodVisibleToAnother(Method left, Method right) {
+		return Modifier.isPublic( right.getModifiers() ) || Modifier.isProtected( right.getModifiers() )
+				|| right.getDeclaringClass().getPackage().equals( left.getDeclaringClass().getPackage() );
 	}
 
 	public static String getSimpleName(Executable executable) {

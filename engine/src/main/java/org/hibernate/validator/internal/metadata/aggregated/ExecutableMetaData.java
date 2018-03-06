@@ -307,6 +307,7 @@ public class ExecutableMetaData extends AbstractConstraintMetaData {
 			return executable.equals( candidate ) ||
 					overrides( executable, candidate ) ||
 					overrides( candidate, executable );
+//			return same( executable, candidate );
 		}
 
 		private boolean overrides(Executable first, Executable other) {
@@ -315,6 +316,14 @@ public class ExecutableMetaData extends AbstractConstraintMetaData {
 			}
 
 			return executableHelper.overrides( (Method) first, (Method) other );
+		}
+
+		private boolean same(Executable first, Executable other) {
+			if ( first instanceof Constructor || other instanceof Constructor ) {
+				return false;
+			}
+
+			return executableHelper.same( (Method) first, (Method) other );
 		}
 
 		@Override
