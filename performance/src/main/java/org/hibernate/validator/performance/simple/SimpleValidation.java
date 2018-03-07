@@ -77,6 +77,20 @@ public class SimpleValidation {
 		bh.consume( violations );
 	}
 
+	@Benchmark
+	@BenchmarkMode(Mode.Throughput)
+	@OutputTimeUnit(TimeUnit.MILLISECONDS)
+	@Fork(value = 1)
+	@Threads(50)
+	@Warmup(iterations = 10)
+	@Measurement(iterations = 20)
+	public void testSimpleBeanValidationCustomMessage(ValidationState state, Blackhole bh) {
+		CustomDriverSetup driverSetup = new CustomDriverSetup( state );
+		Set<ConstraintViolation<CustomDriver>> violations = state.validator.validate( driverSetup.getDriver() );
+		assertThat( violations ).hasSize( driverSetup.getExpectedViolationCount() );
+		bh.consume( violations );
+	}
+
 	public class Driver {
 		@NotNull
 		private String name;
@@ -136,6 +150,58 @@ public class SimpleValidation {
 		}
 
 		public Driver getDriver() {
+			return driver;
+		}
+	}
+
+	public class CustomDriver {
+		@NotNull(message = "my message")
+		private String name;
+
+		@Min(value = 18, message = "my message")
+		private int age;
+
+		@AssertTrue(message = "my message")
+		private boolean hasDrivingLicense;
+
+		public CustomDriver(String name, int age, boolean hasDrivingLicense) {
+			this.name = name;
+			this.age = age;
+			this.hasDrivingLicense = hasDrivingLicense;
+		}
+	}
+
+	private class CustomDriverSetup {
+		private int expectedViolationCount;
+		private CustomDriver driver;
+
+		public CustomDriverSetup(ValidationState state) {
+			expectedViolationCount = 0;
+
+			String name = names[state.random.nextInt( 10 )];
+			if ( name == null ) {
+				expectedViolationCount++;
+			}
+
+			int randomAge = state.random.nextInt( 100 );
+			if ( randomAge < 18 ) {
+				expectedViolationCount++;
+			}
+
+			int rand = state.random.nextInt( 2 );
+			boolean hasLicense = rand == 1;
+			if ( !hasLicense ) {
+				expectedViolationCount++;
+			}
+
+			driver = new CustomDriver( name, randomAge, hasLicense );
+		}
+
+		public int getExpectedViolationCount() {
+			return expectedViolationCount;
+		}
+
+		public CustomDriver getDriver() {
 			return driver;
 		}
 	}

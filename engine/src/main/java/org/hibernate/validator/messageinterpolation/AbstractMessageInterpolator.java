@@ -251,6 +251,11 @@ public abstract class AbstractMessageInterpolator implements MessageInterpolator
 	 * @return the interpolated message.
 	 */
 	private String interpolateMessage(String message, Context context, Locale locale) throws MessageDescriptorFormatException {
+		//if message does not contain something like "{message.key}" we can ignore next steps and just return the message
+		if ( message.indexOf( '{' ) < 0 ) {
+			return replaceEscapedLiterals( message );
+		}
+
 		String resolvedMessage = null;
 
 		// either retrieve message from cache, or if message is not yet there or caching is disabled,
@@ -298,11 +303,6 @@ public abstract class AbstractMessageInterpolator implements MessageInterpolator
 	}
 
 	private String resolveMessage(String message, Locale locale) {
-		//if message does not contain something like "{message.key}" we can ignore next steps and just return the message
-		if ( message.indexOf( '{' ) < 0 ) {
-			return message;
-		}
-
 		String resolvedMessage = message;
 
 		ResourceBundle userResourceBundle = userResourceBundleLocator
