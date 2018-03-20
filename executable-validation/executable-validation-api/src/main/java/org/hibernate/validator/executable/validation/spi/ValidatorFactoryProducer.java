@@ -4,7 +4,7 @@
  * License: Apache License, Version 2.0
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
-package org.hibernate.validator.aspectj.validation.spi;
+package org.hibernate.validator.executable.validation.spi;
 
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;

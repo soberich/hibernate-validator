@@ -14,7 +14,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import org.hibernate.validator.aspectj.validation.Validate;
+import org.hibernate.validator.executable.validation.Validate;
 
 import org.testng.annotations.Test;
 

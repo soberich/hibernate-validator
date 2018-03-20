@@ -5,8 +5,6 @@
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
 /**
- * Contains privileged actions that should run within security manager.
- * <p>
  * This package is part of the private Hibernate Validator API.
  */
-package org.hibernate.validator.aspectj.validation.internal.util.privilegedactions;
+package org.hibernate.validator.executable.validation.internal;

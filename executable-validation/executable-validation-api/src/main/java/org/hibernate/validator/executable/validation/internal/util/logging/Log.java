@@ -4,12 +4,12 @@
  * License: Apache License, Version 2.0
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
-package org.hibernate.validator.aspectj.validation.internal.util.logging;
+package org.hibernate.validator.executable.validation.internal.util.logging;
 
 import static org.jboss.logging.Logger.Level.INFO;
 
-import org.hibernate.validator.aspectj.validation.internal.util.logging.formatter.ClassObjectFormatter;
-import org.hibernate.validator.aspectj.validation.spi.ValidatorFactoryProducer;
+import org.hibernate.validator.executable.validation.internal.util.logging.formatter.ClassObjectFormatter;
+import org.hibernate.validator.executable.validation.spi.ValidatorFactoryProducer;
 
 import org.jboss.logging.BasicLogger;
 import org.jboss.logging.annotations.Cause;

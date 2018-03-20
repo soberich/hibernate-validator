@@ -5,8 +5,8 @@
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
 /**
- * Contains formatters used by the {@link org.hibernate.validator.aspectj.validation.internal.util.logging.Log}.
+ * Contains formatters used by the {@link org.hibernate.validator.executable.validation.internal.util.logging.Log}.
  * <p>
  * This package is part of the private Hibernate Validator API.
  */
-package org.hibernate.validator.aspectj.validation.internal.util.logging.formatter;
+package org.hibernate.validator.executable.validation.internal.util.logging.formatter;

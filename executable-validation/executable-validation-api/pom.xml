@@ -12,13 +12,13 @@
         <artifactId>hibernate-validator-executable-validation</artifactId>
         <version>6.0.9-SNAPSHOT</version>
     </parent>
-    <artifactId>hibernate-validator-aspectj-validation</artifactId>
+    <artifactId>hibernate-validator-executable-validation-api</artifactId>
 
-    <name>Hibernate Validator AspectJ Validation</name>
+    <name>Hibernate Validator Executable Validation API</name>
 
     <properties>
         <hibernate-validator-parent.path>../..</hibernate-validator-parent.path>
-        <automatic.module.name>org.hibernate.validator.aspectj.validation</automatic.module.name>
+        <automatic.module.name>org.hibernate.validator.executable.validation</automatic.module.name>
     </properties>
 
     <build>
@@ -49,31 +49,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.11</version>
-                <configuration>
-                    <complianceLevel>1.8</complianceLevel>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                    <showWeaveInfo>true</showWeaveInfo>
-                    <verbose>true</verbose>
-                    <Xlint>ignore</Xlint>
-                    <encoding>UTF-8</encoding>
-                    <excludes>
-                        <exclude>**/logging/*.*</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
@@ -84,21 +59,11 @@
             <artifactId>validation-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hibernate-validator-executable-validation-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
         </dependency>
 
         <!-- Provided dependencies -->
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging-processor</artifactId>
@@ -125,11 +90,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hibernate-validator-test-utils</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>javax.el</artifactId>
             <scope>test</scope>
@@ -143,11 +103,6 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator-executable-validation-api</artifactId>
-            <version>6.0.9-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

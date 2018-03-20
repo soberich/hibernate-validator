@@ -4,7 +4,7 @@
  * License: Apache License, Version 2.0
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
-package org.hibernate.validator.aspectj.validation.internal;
+package org.hibernate.validator.executable.validation.internal;
 
 import java.lang.invoke.MethodHandles;
 import java.security.AccessController;
@@ -15,10 +15,10 @@ import java.util.ServiceLoader;
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 
-import org.hibernate.validator.aspectj.validation.internal.util.logging.Log;
-import org.hibernate.validator.aspectj.validation.internal.util.logging.LoggerFactory;
-import org.hibernate.validator.aspectj.validation.internal.util.privilegedactions.GetValidatorProviderFactoryFromServiceLoader;
-import org.hibernate.validator.aspectj.validation.spi.ValidatorFactoryProducer;
+import org.hibernate.validator.executable.validation.internal.util.logging.Log;
+import org.hibernate.validator.executable.validation.internal.util.logging.LoggerFactory;
+import org.hibernate.validator.executable.validation.internal.util.privilegedactions.GetValidatorProviderFactoryFromServiceLoader;
+import org.hibernate.validator.executable.validation.spi.ValidatorFactoryProducer;
 
 /**
  * Uses {@link ServiceLoader} mechanism to look up user provided {@link ValidatorFactoryProducer}.
@@ -26,13 +26,13 @@ import org.hibernate.validator.aspectj.validation.spi.ValidatorFactoryProducer;
  *
  * @author Marko Bekhta
  */
-class ServiceLoaderBasedValidatorFactoryProducer {
+public class ServiceLoaderBasedValidatorFactoryProducer {
 
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
 	private final ValidatorFactory validatorFactory;
 
-	ServiceLoaderBasedValidatorFactoryProducer() {
+	public ServiceLoaderBasedValidatorFactoryProducer() {
 		List<ValidatorFactoryProducer> validatorFactoryProducers = run( GetValidatorProviderFactoryFromServiceLoader.action() );
 		if ( validatorFactoryProducers.isEmpty() ) {
 			validatorFactory = Validation.buildDefaultValidatorFactory();

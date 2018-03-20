@@ -28,6 +28,7 @@
     </properties>
 
     <modules>
+        <module>executable-validation-api</module>
         <module>aspectj-validation</module>
     </modules>
 

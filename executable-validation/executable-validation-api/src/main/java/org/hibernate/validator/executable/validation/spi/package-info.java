@@ -6,8 +6,9 @@
  */
 
 /**
- * Contains {@link org.hibernate.validator.aspectj.validation.Validate} marker annotation to mark methods for validation.
+ * Contains an interface {@link org.hibernate.validator.aspectj.validation.spi.ValidatorFactoryProducer}
+ * that can be implemented by users to configure and build a {@link javax.validation.ValidatorFactory}.
  * <p>
  * This package is part of the public Hibernate Validator API.
  */
-package org.hibernate.validator.aspectj.validation;
+package org.hibernate.validator.executable.validation.spi;

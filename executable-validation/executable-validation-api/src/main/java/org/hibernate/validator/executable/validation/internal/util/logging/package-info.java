@@ -8,4 +8,4 @@
  * <p>
  * This package is part of the private Hibernate Validator API.
  */
-package org.hibernate.validator.aspectj.validation.internal.util.logging;
+package org.hibernate.validator.executable.validation.internal.util.logging;

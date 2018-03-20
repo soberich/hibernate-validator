@@ -4,15 +4,13 @@
  * License: Apache License, Version 2.0
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
-package org.hibernate.validator.aspectj.validation.internal;
+package org.hibernate.validator.executable.validation.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ServiceLoader;
 
 import javax.validation.ValidatorFactory;
-
-import org.hibernate.validator.executable.validation.internal.ServiceLoaderBasedValidatorFactoryProducer;
 
 import org.testng.annotations.Test;
 

@@ -4,7 +4,7 @@
  * License: Apache License, Version 2.0
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
-package org.hibernate.validator.aspectj.validation.internal.util.privilegedactions;
+package org.hibernate.validator.executable.validation.internal.util.privilegedactions;
 
 import java.security.PrivilegedAction;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.hibernate.validator.aspectj.validation.spi.ValidatorFactoryProducer;
+import org.hibernate.validator.executable.validation.spi.ValidatorFactoryProducer;
 
 /**
  * A privileged action that accesses {@link ServiceLoader} mechanism to lookup

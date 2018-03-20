@@ -4,7 +4,7 @@
  * License: Apache License, Version 2.0
  * See the license.txt file in the root directory or <http://www.apache.org/licenses/LICENSE-2.0>.
  */
-package org.hibernate.validator.aspectj.validation.internal;
+package org.hibernate.validator.aspectj.validation;
 
 import java.util.Set;
 
@@ -13,7 +13,8 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.validation.executable.ExecutableValidator;
 
-import org.hibernate.validator.aspectj.validation.Validate;
+import org.hibernate.validator.executable.validation.Validate;
+import org.hibernate.validator.executable.validation.internal.ServiceLoaderBasedValidatorFactoryProducer;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.ConstructorSignature;
