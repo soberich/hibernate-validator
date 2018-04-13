@@ -50,10 +50,6 @@ public interface ConstrainedElement extends Iterable<MetaConstraint<?>> {
 		TYPE, CONSTRUCTOR, METHOD, PARAMETER, PROPERTY
 	}
 
-	enum ConstrainedPropertyKind {
-		FIELD, GETTER
-	}
-
 	/**
 	 * Returns the kind of this constrained element.
 	 *

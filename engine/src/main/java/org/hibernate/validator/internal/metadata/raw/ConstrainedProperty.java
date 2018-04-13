@@ -22,8 +22,6 @@ public class ConstrainedProperty extends AbstractConstrainedElement {
 
 	private final Property property;
 
-	private final ConstrainedPropertyKind constrainedPropertyKind;
-
 	/**
 	 * Creates a new field meta data object.
 	 *
@@ -37,13 +35,11 @@ public class ConstrainedProperty extends AbstractConstrainedElement {
 			Property property,
 			Set<MetaConstraint<?>> constraints,
 			Set<MetaConstraint<?>> typeArgumentConstraints,
-			CascadingMetaDataBuilder cascadingMetaDataBuilder,
-			ConstrainedPropertyKind constrainedPropertyKind) {
+			CascadingMetaDataBuilder cascadingMetaDataBuilder) {
 
 		super( source, ConstrainedElementKind.PROPERTY, constraints, typeArgumentConstraints, cascadingMetaDataBuilder );
 
 		this.property = property;
-		this.constrainedPropertyKind = constrainedPropertyKind;
 	}
 
 	public static ConstrainedProperty forField(ConfigurationSource source,
@@ -51,23 +47,11 @@ public class ConstrainedProperty extends AbstractConstrainedElement {
 			Set<MetaConstraint<?>> constraints,
 			Set<MetaConstraint<?>> typeArgumentConstraints,
 			CascadingMetaDataBuilder cascadingMetaDataBuilder) {
-		return new ConstrainedProperty( source, property, constraints, typeArgumentConstraints, cascadingMetaDataBuilder, ConstrainedPropertyKind.FIELD );
-	}
-
-	public static ConstrainedProperty forGetter(ConfigurationSource source,
-			Property property,
-			Set<MetaConstraint<?>> constraints,
-			Set<MetaConstraint<?>> typeArgumentConstraints,
-			CascadingMetaDataBuilder cascadingMetaDataBuilder) {
-		return new ConstrainedProperty( source, property, constraints, typeArgumentConstraints, cascadingMetaDataBuilder, ConstrainedPropertyKind.GETTER );
+		return new ConstrainedProperty( source, property, constraints, typeArgumentConstraints, cascadingMetaDataBuilder );
 	}
 
 	public Property getProperty() {
 		return property;
-	}
-
-	public ConstrainedPropertyKind getConstrainedPropertyKind() {
-		return constrainedPropertyKind;
 	}
 
 	@Override
@@ -78,7 +62,6 @@ public class ConstrainedProperty extends AbstractConstrainedElement {
 	@Override public int hashCode() {
 		int result = super.hashCode();
 		result = 31 * result + this.property.hashCode();
-		result = 31 * result + this.constrainedPropertyKind.hashCode();
 		return result;
 	}
 
@@ -96,9 +79,6 @@ public class ConstrainedProperty extends AbstractConstrainedElement {
 
 		ConstrainedProperty that = (ConstrainedProperty) o;
 
-		if ( this.constrainedPropertyKind != that.constrainedPropertyKind ) {
-			return false;
-		}
 		return this.property.equals( that.property );
 	}
 }
