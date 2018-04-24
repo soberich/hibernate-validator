@@ -25,11 +25,14 @@
         <hibernate-validator-parent.path>..</hibernate-validator-parent.path>
 
         <aspectj.version>1.8.13</aspectj.version>
+        <byte-buddy.version>1.8.8</byte-buddy.version>
     </properties>
 
     <modules>
         <module>executable-validation-api</module>
         <module>aspectj-validation</module>
+        <module>byte-buddy-agent-validation</module>
+        <module>client-agent-validation</module>
     </modules>
 
     <dependencyManagement>
@@ -43,6 +46,11 @@
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjtools</artifactId>
                 <version>${aspectj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${byte-buddy.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
