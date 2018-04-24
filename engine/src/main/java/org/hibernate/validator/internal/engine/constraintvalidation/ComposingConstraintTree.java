@@ -66,12 +66,12 @@ class ComposingConstraintTree<B extends Annotation> extends ConstraintTree<B> {
 	@Override
 	protected <T> void validateConstraints(ValidationContext<T> validationContext,
 			ValueContext<?, ?> valueContext,
-			Collection<ConstraintValidatorContextImpl> violatedConstraintValidatorContexts) {
+			Collection<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts) {
 		CompositionResult compositionResult = validateComposingConstraints(
 				validationContext, valueContext, violatedConstraintValidatorContexts
 		);
 
-		Optional<ConstraintValidatorContextImpl> violatedLocalConstraintValidatorContext;
+		Optional<AbstractConstraintValidatorContext> violatedLocalConstraintValidatorContext;
 
 		// After all children are validated the actual ConstraintValidator of the constraint itself is executed
 		if ( mainConstraintNeedsEvaluation( validationContext, violatedConstraintValidatorContexts ) ) {
@@ -88,7 +88,7 @@ class ComposingConstraintTree<B extends Annotation> extends ConstraintTree<B> {
 			ConstraintValidator<B, ?> validator = getInitializedConstraintValidator( validationContext, valueContext );
 
 			// create a constraint validator context
-			ConstraintValidatorContextImpl constraintValidatorContext = validationContext.createConstraintValidatorContextFor(
+			AbstractConstraintValidatorContext constraintValidatorContext = validationContext.createConstraintValidatorContextFor(
 					descriptor, valueContext.getPropertyPath()
 			);
 
@@ -120,7 +120,7 @@ class ComposingConstraintTree<B extends Annotation> extends ConstraintTree<B> {
 	}
 
 	private <T> boolean mainConstraintNeedsEvaluation(ValidationContext<T> validationContext,
-			Collection<ConstraintValidatorContextImpl> violatedConstraintValidatorContexts) {
+			Collection<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts) {
 		// we are dealing with a composing constraint with no validator for the main constraint
 		if ( !descriptor.getComposingConstraints().isEmpty() && descriptor.getMatchingConstraintValidatorDescriptors().isEmpty() ) {
 			return false;
@@ -155,8 +155,8 @@ class ComposingConstraintTree<B extends Annotation> extends ConstraintTree<B> {
 	 */
 	private <T> void prepareFinalConstraintViolations(ValidationContext<T> validationContext,
 			ValueContext<?, ?> valueContext,
-			Collection<ConstraintValidatorContextImpl> violatedConstraintValidatorContexts,
-			Optional<ConstraintValidatorContextImpl> localConstraintValidatorContext) {
+			Collection<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts,
+			Optional<AbstractConstraintValidatorContext> localConstraintValidatorContext) {
 		if ( reportAsSingleViolation() ) {
 			// We clear the current violations list anyway
 			violatedConstraintValidatorContexts.clear();
@@ -198,10 +198,10 @@ class ComposingConstraintTree<B extends Annotation> extends ConstraintTree<B> {
 	 */
 	private <T> CompositionResult validateComposingConstraints(ValidationContext<T> validationContext,
 			ValueContext<?, ?> valueContext,
-			Collection<ConstraintValidatorContextImpl> violatedConstraintValidatorContexts) {
+			Collection<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts) {
 		CompositionResult compositionResult = new CompositionResult( true, false );
 		for ( ConstraintTree<?> tree : children ) {
-			List<ConstraintValidatorContextImpl> tmpConstraintValidatorContexts = new ArrayList<>( 5 );
+			List<AbstractConstraintValidatorContext> tmpConstraintValidatorContexts = new ArrayList<>( 5 );
 			tree.validateConstraints( validationContext, valueContext, tmpConstraintValidatorContexts );
 			violatedConstraintValidatorContexts.addAll( tmpConstraintValidatorContexts );
 

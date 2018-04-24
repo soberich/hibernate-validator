@@ -40,7 +40,7 @@ class SimpleConstraintTree<B extends Annotation> extends ConstraintTree<B> {
 	@Override
 	protected <T> void validateConstraints(ValidationContext<T> validationContext,
 			ValueContext<?, ?> valueContext,
-			Collection<ConstraintValidatorContextImpl> violatedConstraintValidatorContexts) {
+			Collection<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts) {
 
 		if ( LOG.isTraceEnabled() ) {
 			LOG.tracef(
@@ -54,7 +54,7 @@ class SimpleConstraintTree<B extends Annotation> extends ConstraintTree<B> {
 		ConstraintValidator<B, ?> validator = getInitializedConstraintValidator( validationContext, valueContext );
 
 		// create a constraint validator context
-		ConstraintValidatorContextImpl constraintValidatorContext = validationContext.createConstraintValidatorContextFor(
+		AbstractConstraintValidatorContext constraintValidatorContext = validationContext.createConstraintValidatorContextFor(
 				descriptor, valueContext.getPropertyPath()
 		);
 

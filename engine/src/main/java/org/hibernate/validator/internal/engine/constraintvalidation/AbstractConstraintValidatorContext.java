@@ -28,6 +28,7 @@ import javax.validation.ElementKind;
 import javax.validation.metadata.ConstraintDescriptor;
 
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
+import org.hibernate.validator.constraintvalidation.HibernateCrossParameterConstraintValidatorContext;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.Contracts;
@@ -38,14 +39,14 @@ import org.hibernate.validator.internal.util.logging.LoggerFactory;
  * @author Hardy Ferentschik
  * @author Gunnar Morling
  * @author Guillaume Smet
+ * @author Marko Bekhta
  */
-public class ConstraintValidatorContextImpl implements HibernateConstraintValidatorContext {
+public abstract class AbstractConstraintValidatorContext implements HibernateConstraintValidatorContext {
 
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
 	private Map<String, Object> messageParameters;
 	private Map<String, Object> expressionVariables;
-	private final List<String> methodParameterNames;
 	private final ClockProvider clockProvider;
 	private final PathImpl basePath;
 	private final ConstraintDescriptor<?> constraintDescriptor;
@@ -54,9 +55,11 @@ public class ConstraintValidatorContextImpl implements HibernateConstraintValida
 	private Object dynamicPayload;
 	private final Object constraintValidatorPayload;
 
-	public ConstraintValidatorContextImpl(List<String> methodParameterNames, ClockProvider clockProvider,
-			PathImpl propertyPath, ConstraintDescriptor<?> constraintDescriptor, Object constraintValidatorPayload) {
-		this.methodParameterNames = methodParameterNames;
+	private AbstractConstraintValidatorContext(
+			ClockProvider clockProvider,
+			PathImpl propertyPath,
+			ConstraintDescriptor<?> constraintDescriptor,
+			Object constraintValidatorPayload) {
 		this.clockProvider = clockProvider;
 		this.basePath = propertyPath;
 		this.constraintDescriptor = constraintDescriptor;
@@ -71,15 +74,6 @@ public class ConstraintValidatorContextImpl implements HibernateConstraintValida
 	@Override
 	public final String getDefaultConstraintMessageTemplate() {
 		return constraintDescriptor.getMessageTemplate();
-	}
-
-	@Override
-	public final ConstraintViolationBuilder buildConstraintViolationWithTemplate(String messageTemplate) {
-		return new ConstraintViolationBuilderImpl(
-				methodParameterNames,
-				messageTemplate,
-				PathImpl.createCopy( basePath )
-		);
 	}
 
 	@Override
@@ -161,6 +155,10 @@ public class ConstraintValidatorContextImpl implements HibernateConstraintValida
 		return CollectionHelper.toImmutableList( returnedConstraintViolationCreationContexts );
 	}
 
+	protected final PathImpl getCopyOfBasePath() {
+		return PathImpl.createCopy( basePath );
+	}
+
 	private ConstraintViolationCreationContext getDefaultConstraintViolationCreationContext() {
 		return new ConstraintViolationCreationContext(
 				getDefaultConstraintMessageTemplate(),
@@ -171,8 +169,70 @@ public class ConstraintValidatorContextImpl implements HibernateConstraintValida
 		);
 	}
 
-	public List<String> getMethodParameterNames() {
-		return methodParameterNames;
+	private static class SimpleConstraintValidatorContext extends AbstractConstraintValidatorContext {
+		private SimpleConstraintValidatorContext(ClockProvider clockProvider, PathImpl propertyPath, ConstraintDescriptor<?> constraintDescriptor, Object constraintValidatorPayload) {
+			super( clockProvider, propertyPath, constraintDescriptor, constraintValidatorPayload );
+		}
+
+		@Override
+		public final ConstraintViolationBuilder buildConstraintViolationWithTemplate(String messageTemplate) {
+			return new ConstraintViolationBuilderImpl(
+					messageTemplate,
+					getCopyOfBasePath()
+			);
+		}
+	}
+
+
+	private static class CrossParameterConstraintValidatorContext extends AbstractConstraintValidatorContext implements
+			HibernateCrossParameterConstraintValidatorContext {
+
+		private final List<String> methodParameterNames;
+
+		private CrossParameterConstraintValidatorContext(List<String> methodParameterNames, ClockProvider clockProvider, PathImpl propertyPath, ConstraintDescriptor<?> constraintDescriptor, Object constraintValidatorPayload) {
+			super( clockProvider, propertyPath, constraintDescriptor, constraintValidatorPayload );
+			this.methodParameterNames = methodParameterNames;
+		}
+
+		@Override
+		public final ConstraintViolationBuilder buildConstraintViolationWithTemplate(String messageTemplate) {
+			return new CrossParameterConstraintViolationBuilderImpl(
+					methodParameterNames,
+					messageTemplate,
+					getCopyOfBasePath()
+			);
+		}
+
+		@Override
+		public List<String> getMethodParameterNames() {
+			return methodParameterNames;
+		}
+
+		@Override
+		public <T> T unwrap(Class<T> type) {
+			//allow unwrapping into public super types
+			if ( type.isAssignableFrom( HibernateCrossParameterConstraintValidatorContext.class ) ) {
+				return type.cast( this );
+			}
+			return super.unwrap( type );
+		}
+	}
+
+	public static AbstractConstraintValidatorContext simpleConstraintValidatorContext(
+			ClockProvider clockProvider,
+			PathImpl propertyPath,
+			ConstraintDescriptor<?> constraintDescriptor,
+			Object constraintValidatorPayload) {
+		return new SimpleConstraintValidatorContext( clockProvider, propertyPath, constraintDescriptor, constraintValidatorPayload );
+	}
+
+	public static AbstractConstraintValidatorContext crossParameterConstraintValidatorContext(
+			List<String> methodParameterNames,
+			ClockProvider clockProvider,
+			PathImpl propertyPath,
+			ConstraintDescriptor<?> constraintDescriptor,
+			Object constraintValidatorPayload) {
+		return new CrossParameterConstraintValidatorContext( methodParameterNames, clockProvider, propertyPath, constraintDescriptor, constraintValidatorPayload );
 	}
 
 	private abstract class NodeBuilderBase {
@@ -198,17 +258,37 @@ public class ConstraintValidatorContextImpl implements HibernateConstraintValida
 							dynamicPayload
 					)
 			);
-			return ConstraintValidatorContextImpl.this;
+			return AbstractConstraintValidatorContext.this;
 		}
+	}
+
+	private class CrossParameterConstraintViolationBuilderImpl extends ConstraintViolationBuilderImpl {
+
+		private final List<String> methodParameterNames;
+
+		private CrossParameterConstraintViolationBuilderImpl(List<String> methodParameterNames,  String template, PathImpl path) {
+			super( template, path );
+			this.methodParameterNames = methodParameterNames;
+		}
+
+		@Override
+		public NodeBuilderDefinedContext addParameterNode(int index) {
+			if ( propertyPath.getLeafNode().getKind() != ElementKind.CROSS_PARAMETER ) {
+				throw LOG.getParameterNodeAddedForNonCrossParameterConstraintException( propertyPath );
+			}
+
+			dropLeafNodeIfRequired();
+			propertyPath.addParameterNode( methodParameterNames.get( index ), index );
+
+			return new NodeBuilder( messageTemplate, propertyPath );
+		}
+
 	}
 
 	private class ConstraintViolationBuilderImpl extends NodeBuilderBase implements ConstraintViolationBuilder {
 
-		private final List<String> methodParameterNames;
-
-		private ConstraintViolationBuilderImpl(List<String> methodParameterNames, String template, PathImpl path) {
+		private ConstraintViolationBuilderImpl(String template, PathImpl path) {
 			super( template, path );
-			this.methodParameterNames = methodParameterNames;
 		}
 
 		@Override
@@ -233,14 +313,7 @@ public class ConstraintValidatorContextImpl implements HibernateConstraintValida
 
 		@Override
 		public NodeBuilderDefinedContext addParameterNode(int index) {
-			if ( propertyPath.getLeafNode().getKind() != ElementKind.CROSS_PARAMETER ) {
-				throw LOG.getParameterNodeAddedForNonCrossParameterConstraintException( propertyPath );
-			}
-
-			dropLeafNodeIfRequired();
-			propertyPath.addParameterNode( methodParameterNames.get( index ), index );
-
-			return new NodeBuilder( messageTemplate, propertyPath );
+			throw LOG.getParameterNodeAddedForNonCrossParameterConstraintException( propertyPath );
 		}
 
 		@Override
@@ -255,9 +328,9 @@ public class ConstraintValidatorContextImpl implements HibernateConstraintValida
 		 * constraint, the node representing the constraint element will be
 		 * dropped. inIterable(), getKey() etc.
 		 */
-		private void dropLeafNodeIfRequired() {
-			if ( propertyPath.getLeafNode().getKind() == ElementKind.BEAN || propertyPath.getLeafNode()
-					.getKind() == ElementKind.CROSS_PARAMETER ) {
+		protected final void dropLeafNodeIfRequired() {
+			if ( propertyPath.getLeafNode().getKind() == ElementKind.BEAN
+					|| propertyPath.getLeafNode().getKind() == ElementKind.CROSS_PARAMETER ) {
 				propertyPath = propertyPath.getPathWithoutLeafNode();
 			}
 		}
@@ -272,7 +345,7 @@ public class ConstraintValidatorContextImpl implements HibernateConstraintValida
 
 		@Override
 		@Deprecated
-		public ConstraintViolationBuilder.NodeBuilderCustomizableContext addNode(String name) {
+		public NodeBuilderCustomizableContext addNode(String name) {
 			return addPropertyNode( name );
 		}
 

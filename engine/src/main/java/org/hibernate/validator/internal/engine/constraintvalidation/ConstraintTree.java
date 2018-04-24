@@ -69,13 +69,13 @@ public abstract class ConstraintTree<A extends Annotation> {
 	}
 
 	public final <T> boolean validateConstraints(ValidationContext<T> validationContext, ValueContext<?, ?> valueContext) {
-		List<ConstraintValidatorContextImpl> violatedConstraintValidatorContexts = new ArrayList( 5 );
+		List<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts = new ArrayList( 5 );
 		validateConstraints( validationContext, valueContext, violatedConstraintValidatorContexts );
 		if ( !violatedConstraintValidatorContexts.isEmpty() ) {
-			for ( ConstraintValidatorContextImpl constraintValidatorContext : violatedConstraintValidatorContexts ) {
+			for ( AbstractConstraintValidatorContext constraintValidatorContext : violatedConstraintValidatorContexts ) {
 				for ( ConstraintViolationCreationContext constraintViolationCreationContext : constraintValidatorContext.getConstraintViolationCreationContexts() ) {
 					validationContext.addConstraintFailure(
-							validationContext.createConstraintViolation( valueContext, constraintViolationCreationContext, ( (ConstraintValidatorContextImpl) constraintValidatorContext ).getConstraintDescriptor() )
+							validationContext.createConstraintViolation( valueContext, constraintViolationCreationContext, constraintValidatorContext.getConstraintDescriptor() )
 					);
 				}
 			}
@@ -84,7 +84,7 @@ public abstract class ConstraintTree<A extends Annotation> {
 		return true;
 	}
 
-	protected abstract <T> void validateConstraints(ValidationContext<T> executionContext, ValueContext<?, ?> valueContext, Collection<ConstraintValidatorContextImpl> violatedConstraintValidatorContexts);
+	protected abstract <T> void validateConstraints(ValidationContext<T> executionContext, ValueContext<?, ?> valueContext, Collection<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts);
 
 	public final ConstraintDescriptorImpl<A> getDescriptor() {
 		return descriptor;
@@ -167,12 +167,12 @@ public abstract class ConstraintTree<A extends Annotation> {
 	}
 
 	/**
-	 * @return an {@link Optional#empty()} if there is no violation or a corresponding {@link ConstraintValidatorContextImpl}
+	 * @return an {@link Optional#empty()} if there is no violation or a corresponding {@link AbstractConstraintValidatorContext}
 	 * 		otherwise.
 	 */
-	protected final <V> Optional<ConstraintValidatorContextImpl> validateSingleConstraint(
+	protected final <V> Optional<AbstractConstraintValidatorContext> validateSingleConstraint(
 			ValueContext<?, ?> valueContext,
-			ConstraintValidatorContextImpl constraintValidatorContext,
+			AbstractConstraintValidatorContext constraintValidatorContext,
 			ConstraintValidator<A, V> validator) {
 		boolean isValid;
 		try {
