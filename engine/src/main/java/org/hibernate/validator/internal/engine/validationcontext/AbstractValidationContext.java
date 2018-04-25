@@ -48,7 +48,7 @@ import org.hibernate.validator.internal.util.logging.LoggerFactory;
  * @author Guillaume Smet
  * @author Marko Bekhta
  */
-abstract class AbstractValidationContext<T> implements ValidationContext<T> {
+abstract class AbstractValidationContext<T> implements BaseBeanValidationContext<T> {
 
 	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
@@ -288,7 +288,7 @@ abstract class AbstractValidationContext<T> implements ValidationContext<T> {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		sb.append( "ValidationContext" );
+		sb.append( "BaseBeanValidationContext" );
 		sb.append( "{rootBean=" ).append( rootBean );
 		sb.append( '}' );
 		return sb.toString();

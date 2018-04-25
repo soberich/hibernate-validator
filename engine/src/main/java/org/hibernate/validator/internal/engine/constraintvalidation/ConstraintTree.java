@@ -20,8 +20,8 @@ import javax.validation.ConstraintDeclarationException;
 import javax.validation.ConstraintValidator;
 import javax.validation.ValidationException;
 
-import org.hibernate.validator.internal.engine.validationcontext.ValidationContext;
 import org.hibernate.validator.internal.engine.ValueContext;
+import org.hibernate.validator.internal.engine.validationcontext.ValidationContext;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -68,7 +68,7 @@ public abstract class ConstraintTree<A extends Annotation> {
 		}
 	}
 
-	public final <T> boolean validateConstraints(ValidationContext<T> validationContext, ValueContext<?, ?> valueContext) {
+	public final boolean validateConstraints(ValidationContext<?> validationContext, ValueContext<?, ?> valueContext) {
 		List<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts = new ArrayList( 5 );
 		validateConstraints( validationContext, valueContext, violatedConstraintValidatorContexts );
 		if ( !violatedConstraintValidatorContexts.isEmpty() ) {
@@ -84,7 +84,7 @@ public abstract class ConstraintTree<A extends Annotation> {
 		return true;
 	}
 
-	protected abstract <T> void validateConstraints(ValidationContext<T> executionContext, ValueContext<?, ?> valueContext, Collection<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts);
+	protected abstract void validateConstraints(ValidationContext<?> validationContext, ValueContext<?, ?> valueContext, Collection<AbstractConstraintValidatorContext> violatedConstraintValidatorContexts);
 
 	public final ConstraintDescriptorImpl<A> getDescriptor() {
 		return descriptor;
@@ -115,12 +115,12 @@ public abstract class ConstraintTree<A extends Annotation> {
 		}
 	}
 
-	protected final <T> ConstraintValidator<A, ?> getInitializedConstraintValidator(ValidationContext<T> validationContext, ValueContext<?, ?> valueContext) {
+	protected final ConstraintValidator<A, ?> getInitializedConstraintValidator(ValidationContext<?> validationContext, ValueContext<?, ?> valueContext) {
 		ConstraintValidator<A, ?> validator;
 
 		if ( validationContext.getConstraintValidatorFactory() == validationContext.getConstraintValidatorManager().getDefaultConstraintValidatorFactory()
 				&& validationContext.getConstraintValidatorInitializationContext() == validationContext.getConstraintValidatorManager()
-						.getDefaultConstraintValidatorInitializationContext() ) {
+				.getDefaultConstraintValidatorInitializationContext() ) {
 			validator = constraintValidatorForDefaultConstraintValidatorFactoryAndInitializationContext;
 
 			if ( validator == null ) {
