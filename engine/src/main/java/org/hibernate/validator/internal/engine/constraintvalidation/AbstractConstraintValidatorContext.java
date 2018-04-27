@@ -273,14 +273,14 @@ public abstract class AbstractConstraintValidatorContext implements HibernateCon
 
 		@Override
 		public NodeBuilderDefinedContext addParameterNode(int index) {
-			if ( propertyPath.getLeafNode().getKind() != ElementKind.CROSS_PARAMETER ) {
-				throw LOG.getParameterNodeAddedForNonCrossParameterConstraintException( propertyPath );
-			}
-
-			dropLeafNodeIfRequired();
+			dropLeafNode();
 			propertyPath.addParameterNode( methodParameterNames.get( index ), index );
 
 			return new NodeBuilder( messageTemplate, propertyPath );
+		}
+
+		private void dropLeafNode() {
+			propertyPath = propertyPath.getPathWithoutLeafNode();
 		}
 
 	}
@@ -328,9 +328,8 @@ public abstract class AbstractConstraintValidatorContext implements HibernateCon
 		 * constraint, the node representing the constraint element will be
 		 * dropped. inIterable(), getKey() etc.
 		 */
-		protected final void dropLeafNodeIfRequired() {
-			if ( propertyPath.getLeafNode().getKind() == ElementKind.BEAN
-					|| propertyPath.getLeafNode().getKind() == ElementKind.CROSS_PARAMETER ) {
+		private void dropLeafNodeIfRequired() {
+			if ( propertyPath.getLeafNode().getKind() == ElementKind.BEAN ) {
 				propertyPath = propertyPath.getPathWithoutLeafNode();
 			}
 		}
