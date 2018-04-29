@@ -364,9 +364,8 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 			return Collections.emptySet();
 		}
 
-		BeanMetaData<U> beanMetaData = valueContext.getCurrentBeanMetaData();
-		if ( beanMetaData.defaultGroupSequenceIsRedefined() ) {
-			validationOrder.assertDefaultGroupSequenceIsExpandable( beanMetaData.getDefaultGroupSequence( valueContext.getCurrentBean() ) );
+		if ( valueContext.defaultGroupSequenceIsRedefined() ) {
+			validationOrder.assertDefaultGroupSequenceIsExpandable( valueContext.getDefaultGroupSequence( valueContext.getCurrentBean() ) );
 		}
 
 		// process first single groups. For these we can optimise object traversal by first running all validations on the current bean
@@ -504,7 +503,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 	}
 
 	private void validateConstraintsForNonDefaultGroup(BaseBeanValidationContext<?> validationContext, ValueContext<?, Object> valueContext) {
-		validateMetaConstraints( validationContext, valueContext, valueContext.getCurrentBean(), valueContext.getCurrentBeanMetaData().getMetaConstraints() );
+		validateMetaConstraints( validationContext, valueContext, valueContext.getCurrentBean(), valueContext.getCurrentMetaConstraints() );
 		validationContext.markCurrentBeanAsProcessed( valueContext );
 	}
 
@@ -771,9 +770,8 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		ValueContext<?, Object> valueContext = getValueContextForValueValidation( validationContext.getRootBeanClass(), propertyPath );
 		valueContext.setCurrentValidatedValue( value );
 
-		BeanMetaData<?> beanMetaData = valueContext.getCurrentBeanMetaData();
-		if ( beanMetaData.defaultGroupSequenceIsRedefined() ) {
-			validationOrder.assertDefaultGroupSequenceIsExpandable( beanMetaData.getDefaultGroupSequence( null ) );
+		if ( valueContext.defaultGroupSequenceIsRedefined() ) {
+			validationOrder.assertDefaultGroupSequenceIsExpandable( valueContext.getDefaultGroupSequence( null ) );
 		}
 
 		// process first single groups
