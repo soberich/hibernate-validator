@@ -558,7 +558,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 
 			ElementType elementType = cascadable.getElementType();
 			if ( isCascadeRequired( validationContext, valueContext.getCurrentBean(), valueContext.getPropertyPath(), elementType ) ) {
-				Object value = getCascadableValue( validationContext, valueContext.getCurrentBean(), cascadable );
+				Object value = getCascadableValue( valueContext.getCurrentBean(), cascadable );
 				CascadingMetaData cascadingMetaData = cascadable.getCascadingMetaData();
 
 				if ( value != null ) {
@@ -1168,7 +1168,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 				}
 
 				// TODO which cascadable???
-				value = getCascadableValue( validationContext, value, propertyMetaData.getCascadables().iterator().next() );
+				value = getCascadableValue( value, propertyMetaData.getCascadables().iterator().next() );
 				if ( value == null ) {
 					throw LOG.getUnableToReachPropertyToValidateException( validationContext.getRootBean(), propertyPath );
 				}
@@ -1377,7 +1377,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		return beanMetaData.getMetaDataFor( propertyNode.getName() );
 	}
 
-	private Object getCascadableValue(BaseBeanValidationContext<?> validationContext, Object object, Cascadable cascadable) {
+	private Object getCascadableValue(Object object, Cascadable cascadable) {
 		return cascadable.getValue( object );
 	}
 }
