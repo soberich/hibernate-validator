@@ -137,6 +137,36 @@ public class ConstraintViolationImpl<T> implements HibernateConstraintViolation<
 		);
 	}
 
+	public static <T> ConstraintViolation<T> forPropertyHolderValidation(String messageTemplate,
+															   Map<String, Object> messageParameters,
+															   Map<String, Object> expressionVariables,
+															   String interpolatedMessage,
+															   Class<T> rootBeanClass,
+															   T rootBean,
+															   Object leafBeanInstance,
+															   Object value,
+															   Path propertyPath,
+															   ConstraintDescriptor<?> constraintDescriptor,
+															   ElementType elementType,
+															   Object dynamicPayload) {
+		return new ConstraintViolationImpl<>(
+				messageTemplate,
+				messageParameters,
+				expressionVariables,
+				interpolatedMessage,
+				rootBeanClass,
+				rootBean,
+				leafBeanInstance,
+				value,
+				propertyPath,
+				constraintDescriptor,
+				elementType,
+				null,
+				null,
+				dynamicPayload
+		);
+	}
+
 	private ConstraintViolationImpl(String messageTemplate,
 			Map<String, Object> messageParameters,
 			Map<String, Object> expressionVariables,

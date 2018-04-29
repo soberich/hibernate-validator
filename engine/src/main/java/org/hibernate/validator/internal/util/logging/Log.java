@@ -867,4 +867,13 @@ public interface Log extends BasicLogger {
 
 	@Message(id = 246, value = "Unable to access field %3$s of class %2$s using lookup %1$s.")
 	ValidationException getUnableToAccessFieldException(Lookup lookup, @FormatWith(ClassObjectFormatter.class) Class<?> clazz, String property, @Cause Throwable e);
+
+	@Message(id = 247, value = "%s is configured more than once via the programmatic constraint declaration API.")
+	ValidationException getPropertyHolderMappingHasAlreadyBeenConfiguredViaProgrammaticApiException(String mappingName);
+
+	@Message(id = 248, value = "Property \"%2$s\" in mapping %1$s is configured more than once via the programmatic constraint declaration API.")
+	ValidationException getPropertyHolderMappingPropertyHasAlreadyBeenConfiguredViaProgrammaticApiException(String mappingName, String propertyName);
+
+	@Message(id = 249, value = "Object of type \"%1$s\" is not a property holder, and cannot be validated as one.")
+	ValidationException getCannotConvertToPropertyHolderException(@FormatWith(ClassObjectFormatter.class) Class<?> clazz);
 }

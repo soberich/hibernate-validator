@@ -36,6 +36,7 @@ import org.hibernate.validator.HibernateValidatorFactory;
 import org.hibernate.validator.cfg.ConstraintMapping;
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorInitializationContext;
 import org.hibernate.validator.internal.cfg.context.DefaultConstraintMapping;
+import org.hibernate.validator.internal.cfg.json.PropertyHolderConstraintMappingImpl;
 import org.hibernate.validator.internal.engine.constraintdefinition.ConstraintDefinitionContribution;
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorManager;
 import org.hibernate.validator.internal.engine.constraintvalidation.HibernateConstraintValidatorInitializationContextImpl;
@@ -43,6 +44,7 @@ import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
 import org.hibernate.validator.internal.engine.scripting.DefaultScriptEvaluatorFactory;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
+import org.hibernate.validator.internal.metadata.PropertyHolderMetaDataManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.provider.MetaDataProvider;
 import org.hibernate.validator.internal.metadata.provider.ProgrammaticMetaDataProvider;
@@ -60,8 +62,8 @@ import org.hibernate.validator.internal.util.privilegedactions.LoadClass;
 import org.hibernate.validator.internal.util.privilegedactions.NewInstance;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;
 import org.hibernate.validator.internal.util.stereotypes.ThreadSafe;
-import org.hibernate.validator.spi.properties.GetterPropertyMatcher;
 import org.hibernate.validator.spi.cfg.ConstraintMappingContributor;
+import org.hibernate.validator.spi.properties.GetterPropertyMatcher;
 import org.hibernate.validator.spi.scripting.ScriptEvaluatorFactory;
 
 /**
@@ -96,6 +98,13 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 	 */
 	@Immutable
 	private final Set<DefaultConstraintMapping> constraintMappings;
+
+	/**
+	 * Programmatic constraints for property holders passed via the Hibernate Validator specific API.
+	 * Empty if there are no programmatic constraints.
+	 */
+	@Immutable
+	private final Set<PropertyHolderConstraintMappingImpl> propertyHolderConstraintMappings;
 
 	/**
 	 * Helper for dealing with built-in validators and determining custom constraint annotations.
@@ -174,6 +183,10 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 				)
 		);
 
+		this.propertyHolderConstraintMappings = Collections.unmodifiableSet(
+				getPropertyHolderConstraintMappings( configurationState )
+		);
+
 		registerCustomConstraintValidators( constraintMappings, constraintHelper );
 
 		this.methodValidationConfiguration = new MethodValidationConfiguration.Builder()
@@ -241,6 +254,17 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 		for ( ConstraintMappingContributor contributor : contributors ) {
 			DefaultConstraintMappingBuilder builder = new DefaultConstraintMappingBuilder( getterPropertyMatcher, constraintMappings );
 			contributor.createConstraintMappings( builder );
+		}
+
+		return constraintMappings;
+	}
+
+	private static Set<PropertyHolderConstraintMappingImpl> getPropertyHolderConstraintMappings(ConfigurationState configurationState) {
+		Set<PropertyHolderConstraintMappingImpl> constraintMappings = newHashSet();
+
+		if ( configurationState instanceof ConfigurationImpl ) {
+			ConfigurationImpl hibernateConfiguration = (ConfigurationImpl) configurationState;
+			constraintMappings.addAll( hibernateConfiguration.getJsonProgrammaticMappings() );
 		}
 
 		return constraintMappings;
@@ -368,6 +392,7 @@ public class ValidatorFactoryImpl implements HibernateValidatorFactory {
 		return new ValidatorImpl(
 				constraintValidatorFactory,
 				beanMetaDataManager,
+				new PropertyHolderMetaDataManager( constraintHelper, typeResolutionHelper, valueExtractorManager, propertyHolderConstraintMappings ),
 				valueExtractorManager,
 				constraintValidatorManager,
 				validationOrderGenerator,

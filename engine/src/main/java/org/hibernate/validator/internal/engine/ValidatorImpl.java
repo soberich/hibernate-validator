@@ -47,6 +47,7 @@ import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.engine.resolver.TraversableResolvers;
 import org.hibernate.validator.internal.engine.validationcontext.BaseBeanValidationContext;
 import org.hibernate.validator.internal.engine.validationcontext.ExecutableValidationContext;
+import org.hibernate.validator.internal.engine.validationcontext.PropertyHolderValidationContext;
 import org.hibernate.validator.internal.engine.validationcontext.ValidationContextBuilder;
 import org.hibernate.validator.internal.engine.validationcontext.ValidatorScopedContext;
 import org.hibernate.validator.internal.engine.valuecontext.BeanValueContext;
@@ -56,6 +57,7 @@ import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorDes
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorHelper;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
+import org.hibernate.validator.internal.metadata.PropertyHolderMetaDataManager;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaData;
 import org.hibernate.validator.internal.metadata.aggregated.ContainerCascadingMetaData;
@@ -103,7 +105,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 
 	/**
 	 * {@link TraversableResolver} as passed to the constructor of this instance.
-	 * Never use it directly, always use {@link #getCachingTraversableResolver()} to retrieved the single threaded caching wrapper.
+	 * Never use it directly, always use {@code #getCachingTraversableResolver()} to retrieved the single threaded caching wrapper.
 	 */
 	private final TraversableResolver traversableResolver;
 
@@ -112,6 +114,11 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 	 * of a given entity.
 	 */
 	private final BeanMetaDataManager beanMetaDataManager;
+
+	/**
+	 * Used to get access to the property holder meta data.
+	 */
+	private final PropertyHolderMetaDataManager propertyHolderMetaDataManager;
 
 	/**
 	 * Manages the life cycle of constraint validator instances
@@ -133,12 +140,14 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 
 	public ValidatorImpl(ConstraintValidatorFactory constraintValidatorFactory,
 			BeanMetaDataManager beanMetaDataManager,
+			PropertyHolderMetaDataManager propertyHolderMetaDataManager,
 			ValueExtractorManager valueExtractorManager,
 			ConstraintValidatorManager constraintValidatorManager,
 			ValidationOrderGenerator validationOrderGenerator,
 			ValidatorFactoryScopedContext validatorFactoryScopedContext) {
 		this.constraintValidatorFactory = constraintValidatorFactory;
 		this.beanMetaDataManager = beanMetaDataManager;
+		this.propertyHolderMetaDataManager = propertyHolderMetaDataManager;
 		this.valueExtractorManager = valueExtractorManager;
 		this.constraintValidatorManager = constraintValidatorManager;
 		this.validationOrderGenerator = validationOrderGenerator;
@@ -249,6 +258,26 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		return validateReturnValue( object, (Executable) method, returnValue, groups );
 	}
 
+	public <T> Set<ConstraintViolation<T>> validatePropertyHolder(T object, String typeToValidate, Class<?>... groups) {
+		Contracts.assertNotNull( object, MESSAGES.validatedObjectMustNotBeNull() );
+		sanityCheckGroups( groups );
+
+		PropertyHolderValidationContext<T> validationContext = getValidationContextBuilder().forPropertyHolder( object, typeToValidate);
+
+		if ( !validationContext.getPropertyHolderMetaData().hasConstraints() ) {
+			return Collections.emptySet();
+		}
+
+		ValidationOrder validationOrder = determineGroupValidationOrder( groups );
+		PropertyHolderValueContext<?, Object> valueContext = PropertyHolderValueContext.getLocalExecutionContext(
+				object,
+				validationContext.getPropertyHolderMetaData(),
+				PathImpl.createRootPath()
+		);
+
+		return validateInContext( validationContext, valueContext, validationOrder );
+	}
+
 	private <T> Set<ConstraintViolation<T>> validateParameters(T object, Executable executable, Object[] parameterValues, Class<?>... groups) {
 		sanityCheckGroups( groups );
 
@@ -314,6 +343,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 	private ValidationContextBuilder getValidationContextBuilder() {
 		return new ValidationContextBuilder(
 				beanMetaDataManager,
+				propertyHolderMetaDataManager,
 				constraintValidatorManager,
 				constraintValidatorFactory,
 				validatorScopedContext,

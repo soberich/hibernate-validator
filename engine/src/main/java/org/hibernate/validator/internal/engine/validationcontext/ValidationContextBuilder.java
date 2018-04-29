@@ -15,6 +15,7 @@ import org.hibernate.validator.constraintvalidation.HibernateConstraintValidator
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorManager;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
+import org.hibernate.validator.internal.metadata.PropertyHolderMetaDataManager;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
 
 /**
@@ -26,6 +27,7 @@ import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
 public class ValidationContextBuilder {
 
 	private final BeanMetaDataManager beanMetaDataManager;
+	private final PropertyHolderMetaDataManager propertyHolderMetaDataManager;
 	private final ConstraintValidatorManager constraintValidatorManager;
 	private final ConstraintValidatorFactory constraintValidatorFactory;
 	private final TraversableResolver traversableResolver;
@@ -34,12 +36,14 @@ public class ValidationContextBuilder {
 
 	public ValidationContextBuilder(
 			BeanMetaDataManager beanMetaDataManager,
+			PropertyHolderMetaDataManager propertyHolderMetaDataManager,
 			ConstraintValidatorManager constraintValidatorManager,
 			ConstraintValidatorFactory constraintValidatorFactory,
 			ValidatorScopedContext validatorScopedContext,
 			TraversableResolver traversableResolver,
 			HibernateConstraintValidatorInitializationContext constraintValidatorInitializationContext) {
 		this.beanMetaDataManager = beanMetaDataManager;
+		this.propertyHolderMetaDataManager = propertyHolderMetaDataManager;
 		this.constraintValidatorManager = constraintValidatorManager;
 		this.constraintValidatorFactory = constraintValidatorFactory;
 		this.traversableResolver = traversableResolver;
@@ -134,6 +138,18 @@ public class ValidationContextBuilder {
 				executable,
 				rootBeanMetaData.getMetaDataFor( executable ),
 				executableReturnValue
+		);
+	}
+
+	public <T> PropertyHolderValidationContext<T> forPropertyHolder(T rootPropertyHolder, String mappingName) {
+		return new PropertyHolderValidationContext<>(
+				constraintValidatorManager,
+				constraintValidatorFactory,
+				validatorScopedContext,
+				constraintValidatorInitializationContext,
+				rootPropertyHolder,
+				mappingName,
+				propertyHolderMetaDataManager.getPropertyHolderMetaData( rootPropertyHolder.getClass(), mappingName )
 		);
 	}
 }
