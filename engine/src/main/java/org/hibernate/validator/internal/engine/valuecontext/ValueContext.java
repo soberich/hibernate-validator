@@ -8,6 +8,7 @@ package org.hibernate.validator.internal.engine.valuecontext;
 
 import java.lang.annotation.ElementType;
 import java.lang.reflect.TypeVariable;
+import java.util.List;
 
 import javax.validation.groups.Default;
 
@@ -16,6 +17,7 @@ import org.hibernate.validator.internal.engine.valueextraction.AnnotatedObject;
 import org.hibernate.validator.internal.engine.valueextraction.ArrayElement;
 import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
+import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.facets.Cascadable;
 import org.hibernate.validator.internal.metadata.facets.Validatable;
 import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
@@ -233,6 +235,18 @@ public class ValueContext<T, V> {
 	public Object getValue(Object parent, ConstraintLocation location) {
 		// TODO: For BVAL-214 we'd get the value from a map or another alternative structure instead
 		return location.getValue( parent );
+	}
+
+	public boolean defaultGroupSequenceIsRedefined() {
+		return currentBeanMetaData.defaultGroupSequenceIsRedefined();
+	}
+
+	public List<Class<?>> getDefaultGroupSequence(T currentBean) {
+		return currentBeanMetaData.getDefaultGroupSequence( currentBean );
+	}
+
+	public Iterable<MetaConstraint<?>> getCurrentMetaConstraints() {
+		return currentBeanMetaData.getMetaConstraints();
 	}
 
 	public static class ValueState<V> {
