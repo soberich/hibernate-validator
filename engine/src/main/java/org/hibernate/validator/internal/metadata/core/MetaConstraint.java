@@ -16,7 +16,7 @@ import java.util.Set;
 
 import javax.validation.valueextraction.ValueExtractor;
 
-import org.hibernate.validator.internal.engine.ValueContext;
+import org.hibernate.validator.internal.engine.valuecontext.ValueContext;
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintTree;
 import org.hibernate.validator.internal.engine.validationcontext.ValidationContext;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorDescriptor;
