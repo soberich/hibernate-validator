@@ -741,23 +741,15 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 
 	private BeanValueContext<?, Object> buildNewLocalExecutionContext(BeanValueContext<?, ?> valueContext, Object value) {
 		BeanValueContext<?, Object> newValueContext;
-		if ( value != null ) {
-			newValueContext = BeanValueContext.getLocalExecutionContext(
-					validatorScopedContext.getParameterNameProvider(),
-					value,
-					beanMetaDataManager.getBeanMetaData( value.getClass() ),
-					valueContext.getPropertyPath()
-			);
-			newValueContext.setCurrentValidatedValue( value );
-		}
-		else {
-			newValueContext = BeanValueContext.getLocalExecutionContext(
-					validatorScopedContext.getParameterNameProvider(),
-					valueContext.getCurrentBeanType(),
-					valueContext.getCurrentBeanMetaData(),
-					valueContext.getPropertyPath()
-			);
-		}
+		Contracts.assertNotNull( value, "Value cannot be null at this point." );
+
+		newValueContext = BeanValueContext.getLocalExecutionContext(
+				validatorScopedContext.getParameterNameProvider(),
+				value,
+				beanMetaDataManager.getBeanMetaData( value.getClass() ),
+				valueContext.getPropertyPath()
+		);
+		newValueContext.setCurrentValidatedValue( value );
 
 		return newValueContext;
 	}
