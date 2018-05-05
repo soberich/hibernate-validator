@@ -49,6 +49,7 @@ import org.hibernate.validator.internal.engine.validationcontext.BaseBeanValidat
 import org.hibernate.validator.internal.engine.validationcontext.ExecutableValidationContext;
 import org.hibernate.validator.internal.engine.validationcontext.ValidationContextBuilder;
 import org.hibernate.validator.internal.engine.validationcontext.ValidatorScopedContext;
+import org.hibernate.validator.internal.engine.valuecontext.ValueContext;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorDescriptor;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorHelper;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
