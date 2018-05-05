@@ -89,11 +89,6 @@ public class ParameterMetaData extends AbstractConstraintMetaData implements Cas
 	}
 
 	@Override
-	public Type getCascadableType() {
-		return getType();
-	}
-
-	@Override
 	public void appendTo(PathImpl path) {
 		path.addParameterNode( getName(), getIndex() );
 	}

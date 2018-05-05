@@ -90,11 +90,6 @@ public class ReturnValueMetaData extends AbstractConstraintMetaData
 	}
 
 	@Override
-	public Type getCascadableType() {
-		return getType();
-	}
-
-	@Override
 	public void appendTo(PathImpl path) {
 		path.addReturnValueNode();
 	}

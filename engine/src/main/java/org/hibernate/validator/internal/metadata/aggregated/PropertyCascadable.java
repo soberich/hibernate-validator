@@ -7,7 +7,6 @@
 package org.hibernate.validator.internal.metadata.aggregated;
 
 import java.lang.annotation.ElementType;
-import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
@@ -24,13 +23,11 @@ import org.hibernate.validator.internal.properties.javabean.JavaBeanField;
 public class PropertyCascadable implements Cascadable {
 
 	private final Property property;
-	private final Type cascadableType;
 	private final CascadingMetaData cascadingMetaData;
 	private final ElementType elementType;
 
 	PropertyCascadable(Property property, CascadingMetaData cascadingMetaData) {
 		this.property = property;
-		this.cascadableType = property.getType();
 		this.cascadingMetaData = cascadingMetaData;
 		this.elementType = property instanceof JavaBeanField ? ElementType.FIELD : ElementType.METHOD;
 	}
@@ -38,11 +35,6 @@ public class PropertyCascadable implements Cascadable {
 	@Override
 	public ElementType getElementType() {
 		return elementType;
-	}
-
-	@Override
-	public Type getCascadableType() {
-		return cascadableType;
 	}
 
 	@Override

@@ -7,7 +7,6 @@
 package org.hibernate.validator.internal.metadata.facets;
 
 import java.lang.annotation.ElementType;
-import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.metadata.aggregated.CascadingMetaData;
@@ -29,14 +28,6 @@ public interface Cascadable {
 	 * @return Returns the element type of the cascadable.
 	 */
 	ElementType getElementType();
-
-	/**
-	 * Returns the data type of this cascadable, e.g. the type of a bean property or the
-	 * return type of a method.
-	 *
-	 * @return This cascadable type.
-	 */
-	Type getCascadableType();
 
 	/**
 	 * Returns the value of this cacadable from the given parent.
