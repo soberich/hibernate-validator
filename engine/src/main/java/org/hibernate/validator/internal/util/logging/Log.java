@@ -876,4 +876,13 @@ public interface Log extends BasicLogger {
 
 	@Message(id = 248, value = "Unable to access field %3$s of class %2$s using lookup %1$s.")
 	ValidationException getUnableToAccessFieldException(Lookup lookup, @FormatWith(ClassObjectFormatter.class) Class<?> clazz, String property, @Cause Throwable e);
+
+	@Message(id = 249, value = "Unable to find property creator for property holder of %1$s type.")
+	ValidationException getUnableToFindPropertyCreatorException(@FormatWith(ClassObjectFormatter.class) Class<?> clazz);
+
+	@Message(id = 250, value = "Unexpected property holder type received. Expected %1$s type, but instead got %2$s.")
+	ValidationException getUnexpextedPropertyHolderTypeException(@FormatWith(ClassObjectFormatter.class) Class<?> expecetedHolderType, @FormatWith(ClassObjectFormatter.class) Class<?> realHolderType);
+
+	@Message(id = 251, value = "Unexpected property type in a given property holder. Expected that '%3$s' will be of %1$s type, but instead it is %2$s.")
+	ValidationException getUnexpextedPropertyTypeInPropertyHolderException(@FormatWith(ClassObjectFormatter.class) Class<?> expecetedType, @FormatWith(ClassObjectFormatter.class) Class<?> realType, String propertyName);
 }
