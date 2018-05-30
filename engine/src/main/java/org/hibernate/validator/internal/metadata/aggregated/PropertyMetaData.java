@@ -6,6 +6,7 @@
  */
 package org.hibernate.validator.internal.metadata.aggregated;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.Collections;
@@ -37,6 +38,8 @@ import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.properties.Property;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
+import org.hibernate.validator.internal.util.logging.Log;
+import org.hibernate.validator.internal.util.logging.LoggerFactory;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;
 
 /**
@@ -56,6 +59,8 @@ import org.hibernate.validator.internal.util.stereotypes.Immutable;
  * @author Guillaume Smet
  */
 public class PropertyMetaData extends AbstractConstraintMetaData {
+
+	private static final Log LOG = LoggerFactory.make( MethodHandles.lookup() );
 
 	@Immutable
 	private final Set<Cascadable> cascadables;
@@ -200,27 +205,37 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 			if ( constrainedElement.getCascadingMetaDataBuilder().isMarkedForCascadingOnAnnotatedObjectOrContainerElements() ||
 					constrainedElement.getCascadingMetaDataBuilder().hasGroupConversionsOnAnnotatedObjectOrContainerElements() ) {
 				if ( constrainedElement.getKind() == ConstrainedElementKind.PROPERTY ) {
-					Property property = ( (ConstrainedProperty) constrainedElement ).getProperty();
-					Cascadable.Builder builder = cascadableBuilders.get( property );
+					if ( constrainedElement instanceof ConstrainedProperty ) {
+						Property property = ( (ConstrainedProperty) constrainedElement ).getProperty();
+						Cascadable.Builder builder = cascadableBuilders.get( property );
 
-					if ( builder == null ) {
-						builder = new PropertyCascadable.Builder( valueExtractorManager, property, constrainedElement.getCascadingMetaDataBuilder() );
-						cascadableBuilders.put( property, builder );
+						if ( builder == null ) {
+							builder = new PropertyCascadable.Builder( valueExtractorManager, property, constrainedElement.getCascadingMetaDataBuilder() );
+							cascadableBuilders.put( property, builder );
+						}
+						else {
+							builder.mergeCascadingMetaData( constrainedElement.getCascadingMetaDataBuilder() );
+						}
 					}
 					else {
-						builder.mergeCascadingMetaData( constrainedElement.getCascadingMetaDataBuilder() );
+						LOG.getUnexpectedConstraintElementType( ConstrainedProperty.class, constrainedElement.getClass() );
 					}
 				}
 				else if ( constrainedElement.getKind() == ConstrainedElementKind.METHOD ) {
-					Property property = ( (ConstrainedExecutable) constrainedElement ).getCallable().as( Property.class );
-					Cascadable.Builder builder = cascadableBuilders.get( property );
+					if ( constrainedElement instanceof ConstrainedExecutable ) {
+						Property property = ( (ConstrainedExecutable) constrainedElement ).getCallable().as( Property.class );
+						Cascadable.Builder builder = cascadableBuilders.get( property );
 
-					if ( builder == null ) {
-						builder = new PropertyCascadable.Builder( valueExtractorManager, property, constrainedElement.getCascadingMetaDataBuilder() );
-						cascadableBuilders.put( property, builder );
+						if ( builder == null ) {
+							builder = new PropertyCascadable.Builder( valueExtractorManager, property, constrainedElement.getCascadingMetaDataBuilder() );
+							cascadableBuilders.put( property, builder );
+						}
+						else {
+							builder.mergeCascadingMetaData( constrainedElement.getCascadingMetaDataBuilder() );
+						}
 					}
 					else {
-						builder.mergeCascadingMetaData( constrainedElement.getCascadingMetaDataBuilder() );
+						LOG.getUnexpectedConstraintElementType( ConstrainedExecutable.class, constrainedElement.getClass() );
 					}
 				}
 			}
