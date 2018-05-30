@@ -59,7 +59,7 @@ final class PropertyConstraintMappingContextImpl
 	public PropertyConstraintMappingContext constraint(ConstraintDef<?, ?> definition) {
 		if ( property instanceof JavaBeanField ) {
 			super.addConstraint(
-					ConfiguredConstraint.forProperty(
+					ConfiguredConstraint.forFieldProperty(
 							definition, property
 					)
 			);

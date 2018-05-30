@@ -56,11 +56,11 @@ class ConfiguredConstraint<A extends Annotation> {
 		return new ConfiguredConstraint<>( constraint, ConstraintLocation.forClass( beanType ), ElementType.TYPE );
 	}
 
-	static <A extends Annotation> ConfiguredConstraint<A> forProperty(ConstraintDef<?, A> constraint, Property property) {
+	static <A extends Annotation> ConfiguredConstraint<A> forFieldProperty(ConstraintDef<?, A> constraint, Property property) {
 		return new ConfiguredConstraint<>(
 				constraint,
 				ConstraintLocation.forProperty( property ),
-				property instanceof JavaBeanField ? ElementType.FIELD : ElementType.METHOD
+				ElementType.FIELD
 		);
 	}
 
