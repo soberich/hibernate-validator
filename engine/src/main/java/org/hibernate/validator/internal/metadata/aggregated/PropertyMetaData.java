@@ -6,10 +6,7 @@
  */
 package org.hibernate.validator.internal.metadata.aggregated;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -23,7 +20,6 @@ import java.util.stream.Collectors;
 
 import javax.validation.ElementKind;
 
-import org.hibernate.validator.HibernateValidatorPermission;
 import org.hibernate.validator.internal.engine.valueextraction.ValueExtractorManager;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
@@ -38,12 +34,9 @@ import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.Constrai
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
-import org.hibernate.validator.internal.properties.Callable;
-import org.hibernate.validator.internal.properties.Constrainable;
 import org.hibernate.validator.internal.properties.Property;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
-import org.hibernate.validator.internal.util.privilegedactions.GetDeclaredMethod;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;
 
 /**
@@ -71,8 +64,7 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 							 Type type,
 							 Set<MetaConstraint<?>> constraints,
 							 Set<MetaConstraint<?>> containerElementsConstraints,
-							 Set<Cascadable> cascadables,
-							 boolean cascadingProperty) {
+							 Set<Cascadable> cascadables) {
 		super(
 				propertyName,
 				type,
@@ -157,9 +149,8 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 		);
 
 		private final String propertyName;
-		private final Map<Constrainable, Cascadable.Builder> cascadableBuilders = new HashMap<>();
+		private final Map<Property, Cascadable.Builder> cascadableBuilders = new HashMap<>();
 		private final Type propertyType;
-		private boolean cascadingProperty = false;
 
 		public Builder(Class<?> beanClass, ConstrainedProperty constrainedProperty, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
 				ValueExtractorManager valueExtractorManager) {
@@ -206,8 +197,6 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 		public final void add(ConstrainedElement constrainedElement) {
 			super.add( constrainedElement );
 
-			cascadingProperty = cascadingProperty || constrainedElement.getCascadingMetaDataBuilder().isCascading();
-
 			if ( constrainedElement.getCascadingMetaDataBuilder().isMarkedForCascadingOnAnnotatedObjectOrContainerElements() ||
 					constrainedElement.getCascadingMetaDataBuilder().hasGroupConversionsOnAnnotatedObjectOrContainerElements() ) {
 				if ( constrainedElement.getKind() == ConstrainedElementKind.PROPERTY ) {
@@ -223,12 +212,12 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 					}
 				}
 				else if ( constrainedElement.getKind() == ConstrainedElementKind.METHOD ) {
-					Callable method = ( (ConstrainedExecutable) constrainedElement ).getCallable();
-					Cascadable.Builder builder = cascadableBuilders.get( method );
+					Property property = ( (ConstrainedExecutable) constrainedElement ).getCallable().as( Property.class );
+					Cascadable.Builder builder = cascadableBuilders.get( property );
 
 					if ( builder == null ) {
-						builder = new PropertyCascadable.Builder( valueExtractorManager, method.as( Property.class ), constrainedElement.getCascadingMetaDataBuilder() );
-						cascadableBuilders.put( method, builder );
+						builder = new PropertyCascadable.Builder( valueExtractorManager, property, constrainedElement.getCascadingMetaDataBuilder() );
+						cascadableBuilders.put( property, builder );
 					}
 					else {
 						builder.mergeCascadingMetaData( constrainedElement.getCascadingMetaDataBuilder() );
@@ -315,29 +304,6 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 			return null;
 		}
 
-		/**
-		 * Returns an accessible version of the given member. Will be the given member itself in case it is accessible,
-		 * otherwise a copy which is set accessible.
-		 */
-		private Method getAccessible(Method original) {
-			if ( original.isAccessible() ) {
-				return original;
-			}
-
-			SecurityManager sm = System.getSecurityManager();
-			if ( sm != null ) {
-				sm.checkPermission( HibernateValidatorPermission.ACCESS_PRIVATE_MEMBERS );
-			}
-
-			Class<?> clazz = original.getDeclaringClass();
-
-			return run( GetDeclaredMethod.andMakeAccessible( clazz, original.getName() ) );
-		}
-
-		private <T> T run(PrivilegedAction<T> action) {
-			return System.getSecurityManager() != null ? AccessController.doPrivileged( action ) : action.run();
-		}
-
 		@Override
 		public PropertyMetaData build() {
 			Set<Cascadable> cascadables = cascadableBuilders.values()
@@ -350,8 +316,7 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 					propertyType,
 					adaptOriginsAndImplicitGroups( getDirectConstraints() ),
 					adaptOriginsAndImplicitGroups( getContainerElementConstraints() ),
-					cascadables,
-					cascadingProperty
+					cascadables
 			);
 		}
 	}
