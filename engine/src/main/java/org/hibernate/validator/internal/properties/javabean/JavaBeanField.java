@@ -95,6 +95,11 @@ public class JavaBeanField implements Property {
 		return result;
 	}
 
+	@Override
+	public String toString() {
+		return getName();
+	}
+
 	/**
 	 * Returns an accessible version of the given member. Will be the given member itself in case it is accessible,
 	 * otherwise a copy which is set accessible.
