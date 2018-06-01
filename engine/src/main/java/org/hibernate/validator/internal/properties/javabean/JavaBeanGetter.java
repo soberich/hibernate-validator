@@ -8,7 +8,6 @@ package org.hibernate.validator.internal.properties.javabean;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -21,9 +20,7 @@ import org.hibernate.validator.internal.util.privilegedactions.GetDeclaredMethod
 /**
  * @author Marko Bekhta
  */
-public class JavaBeanGetter extends JavaBeanExecutable implements Property {
-
-	private static final Class<?>[] PARAMETER_TYPES = new Class[0];
+public class JavaBeanGetter extends JavaBeanMethod implements Property {
 
 	private final String name;
 
@@ -67,16 +64,6 @@ public class JavaBeanGetter extends JavaBeanExecutable implements Property {
 	public boolean hasParameters() {
 		// getters should never have parameters
 		return false;
-	}
-
-	@Override
-	public Class<?>[] getParameterTypes() {
-		return PARAMETER_TYPES;
-	}
-
-	@Override
-	public Type[] getGenericParameterTypes() {
-		return PARAMETER_TYPES;
 	}
 
 	@Override
