@@ -22,24 +22,24 @@ import org.hibernate.validator.internal.util.ReflectionHelper;
  */
 public class ParameterConstraintLocation implements ConstraintLocation {
 
-	private final Callable executable;
+	private final Callable callable;
 	private final int index;
 	private final Type typeForValidatorResolution;
 
-	public ParameterConstraintLocation(Callable executable, int index) {
-		this.executable = executable;
+	public ParameterConstraintLocation(Callable callable, int index) {
+		this.callable = callable;
 		this.index = index;
-		this.typeForValidatorResolution = ReflectionHelper.boxedType( executable.getParameterGenericType( index ) );
+		this.typeForValidatorResolution = ReflectionHelper.boxedType( callable.getParameterGenericType( index ) );
 	}
 
 	@Override
 	public Class<?> getDeclaringClass() {
-		return executable.getDeclaringClass();
+		return callable.getDeclaringClass();
 	}
 
 	@Override
 	public Constrainable getMember() {
-		return executable;
+		return callable;
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 
 	@Override
 	public void appendTo(ExecutableParameterNameProvider parameterNameProvider, PathImpl path) {
-		path.addParameterNode( executable.getParameterName( parameterNameProvider, index ), index );
+		path.addParameterNode( callable.getParameterName( parameterNameProvider, index ), index );
 	}
 
 	@Override
@@ -63,14 +63,14 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 
 	@Override
 	public String toString() {
-		return "ParameterConstraintLocation [executable=" + executable + ", index=" + index + "]";
+		return "ParameterConstraintLocation [executable=" + callable + ", index=" + index + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + executable.hashCode();
+		result = prime * result + callable.hashCode();
 		result = prime * result + index;
 		return result;
 	}
@@ -87,7 +87,7 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 			return false;
 		}
 		ParameterConstraintLocation other = (ParameterConstraintLocation) obj;
-		if ( !executable.equals( other.executable ) ) {
+		if ( !callable.equals( other.callable ) ) {
 			return false;
 		}
 		if ( index != other.index ) {

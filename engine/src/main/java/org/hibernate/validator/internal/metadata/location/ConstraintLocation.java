@@ -47,16 +47,16 @@ public interface ConstraintLocation {
 		return new TypeArgumentConstraintLocation( delegate, typeParameter, typeOfAnnotatedElement );
 	}
 
-	static ConstraintLocation forReturnValue(Callable executable) {
-		return new ReturnValueConstraintLocation( executable );
+	static ConstraintLocation forReturnValue(Callable callable) {
+		return new ReturnValueConstraintLocation( callable );
 	}
 
-	static ConstraintLocation forCrossParameter(Callable executable) {
-		return new CrossParameterConstraintLocation( executable );
+	static ConstraintLocation forCrossParameter(Callable callable) {
+		return new CrossParameterConstraintLocation( callable );
 	}
 
-	static ConstraintLocation forParameter(Callable executable, int index) {
-		return new ParameterConstraintLocation( executable, index );
+	static ConstraintLocation forParameter(Callable callable, int index) {
+		return new ParameterConstraintLocation( callable, index );
 	}
 
 	/**

@@ -112,7 +112,7 @@ public class ParameterMetaData extends AbstractConstraintMetaData implements Cas
 		private final ExecutableParameterNameProvider parameterNameProvider;
 		private final Type parameterType;
 		private final int parameterIndex;
-		private Callable executableForNameRetrieval;
+		private Callable callableForNameRetrieval;
 		private CascadingMetaDataBuilder cascadingMetaDataBuilder;
 
 		public Builder(Class<?> beanClass,
@@ -156,9 +156,9 @@ public class ParameterMetaData extends AbstractConstraintMetaData implements Cas
 			// use this parent class parameter name instead of the more specific one.
 			// Worse case, we are consistent, best case parameters from parents are more meaningful.
 			// See HV-887 and the associated unit test
-			if ( executableForNameRetrieval == null ||
-					newConstrainedParameter.getCallable().getDeclaringClass().isAssignableFrom( executableForNameRetrieval.getDeclaringClass() ) ) {
-				executableForNameRetrieval = newConstrainedParameter.getCallable();
+			if ( callableForNameRetrieval == null ||
+					newConstrainedParameter.getCallable().getDeclaringClass().isAssignableFrom( callableForNameRetrieval.getDeclaringClass() ) ) {
+				callableForNameRetrieval = newConstrainedParameter.getCallable();
 			}
 		}
 
@@ -166,11 +166,11 @@ public class ParameterMetaData extends AbstractConstraintMetaData implements Cas
 		public ParameterMetaData build() {
 			return new ParameterMetaData(
 					parameterIndex,
-					executableForNameRetrieval.getParameterName( parameterNameProvider, parameterIndex ),
+					callableForNameRetrieval.getParameterName( parameterNameProvider, parameterIndex ),
 					parameterType,
 					adaptOriginsAndImplicitGroups( getDirectConstraints() ),
 					adaptOriginsAndImplicitGroups( getContainerElementConstraints() ),
-					cascadingMetaDataBuilder.build( valueExtractorManager, executableForNameRetrieval )
+					cascadingMetaDataBuilder.build( valueExtractorManager, callableForNameRetrieval )
 			);
 		}
 	}
