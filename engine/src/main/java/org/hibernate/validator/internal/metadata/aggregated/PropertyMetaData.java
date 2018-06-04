@@ -34,7 +34,6 @@ import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.properties.Property;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
@@ -163,15 +162,6 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 			this.propertyName = constrainedProperty.getProperty().getName();
 			this.propertyType = constrainedProperty.getProperty().getType();
 			add( constrainedProperty );
-		}
-
-		public Builder(Class<?> beanClass, ConstrainedType constrainedType, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
-				ValueExtractorManager valueExtractorManager) {
-			super( beanClass, constraintHelper, typeResolutionHelper, valueExtractorManager );
-
-			this.propertyName = null;
-			this.propertyType = null;
-			add( constrainedType );
 		}
 
 		public Builder(Class<?> beanClass, ConstrainedExecutable constrainedMethod, ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper,
