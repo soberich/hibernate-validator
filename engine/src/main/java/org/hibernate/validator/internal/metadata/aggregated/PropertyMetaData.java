@@ -148,7 +148,6 @@ public class PropertyMetaData extends AbstractConstraintMetaData {
 	public static class Builder extends MetaDataBuilder {
 
 		private static final EnumSet<ConstrainedElementKind> SUPPORTED_ELEMENT_KINDS = EnumSet.of(
-				ConstrainedElementKind.TYPE,
 				ConstrainedElementKind.PROPERTY,
 				ConstrainedElementKind.METHOD
 		);
