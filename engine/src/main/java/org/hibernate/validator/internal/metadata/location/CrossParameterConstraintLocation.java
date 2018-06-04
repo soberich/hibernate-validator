@@ -9,6 +9,8 @@ package org.hibernate.validator.internal.metadata.location;
 import java.lang.reflect.Type;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
+import org.hibernate.validator.internal.properties.Callable;
 import org.hibernate.validator.internal.properties.Constrainable;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
 
@@ -17,23 +19,29 @@ import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
  *
  * @author Hardy Ferentschik
  * @author Gunnar Morling
+ * @author Guillaume Smet
  */
 class CrossParameterConstraintLocation implements ConstraintLocation {
 
-	private final Constrainable executable;
+	private final Callable callable;
 
-	CrossParameterConstraintLocation(Constrainable executable) {
-		this.executable = executable;
+	private final ConstraintLocationKind kind;
+
+	CrossParameterConstraintLocation(Callable callable) {
+		this.callable = callable;
+		this.kind = callable.getConstrainedElementKind() == ConstrainedElementKind.CONSTRUCTOR
+				? ConstraintLocationKind.CONSTRUCTOR
+				: ConstraintLocationKind.METHOD;
 	}
 
 	@Override
 	public Class<?> getDeclaringClass() {
-		return executable.getDeclaringClass();
+		return callable.getDeclaringClass();
 	}
 
 	@Override
 	public Constrainable getMember() {
-		return executable;
+		return callable;
 	}
 
 	@Override
@@ -52,13 +60,18 @@ class CrossParameterConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
+	public ConstraintLocationKind getKind() {
+		return kind;
+	}
+
+	@Override
 	public String toString() {
-		return "CrossParameterConstraintLocation [executable=" + executable + "]";
+		return "CrossParameterConstraintLocation [callable=" + callable + "]";
 	}
 
 	@Override
 	public int hashCode() {
-		return executable.hashCode();
+		return callable.hashCode();
 	}
 
 	@Override
@@ -73,7 +86,7 @@ class CrossParameterConstraintLocation implements ConstraintLocation {
 			return false;
 		}
 		CrossParameterConstraintLocation other = (CrossParameterConstraintLocation) obj;
-		if ( !executable.equals( other.executable ) ) {
+		if ( !callable.equals( other.callable ) ) {
 			return false;
 		}
 

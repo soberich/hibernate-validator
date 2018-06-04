@@ -17,6 +17,7 @@ import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
  * Property constraint location.
  *
  * @author Marko Bekhta
+ * @author Guillaume Smet
  */
 public class PropertyConstraintLocation implements ConstraintLocation {
 
@@ -56,6 +57,11 @@ public class PropertyConstraintLocation implements ConstraintLocation {
 	@Override
 	public Object getValue(Object parent) {
 		return property.getValueFrom( parent );
+	}
+
+	@Override
+	public ConstraintLocationKind getKind() {
+		return ConstraintLocationKind.PROPERTY;
 	}
 
 	@Override
