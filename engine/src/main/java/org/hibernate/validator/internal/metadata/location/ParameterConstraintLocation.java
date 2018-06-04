@@ -44,7 +44,7 @@ public class ParameterConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public Constrainable getMember() {
+	public Constrainable getConstrainable() {
 		return callable;
 	}
 

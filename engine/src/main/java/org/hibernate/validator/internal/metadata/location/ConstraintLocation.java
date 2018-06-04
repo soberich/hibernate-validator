@@ -69,7 +69,7 @@ public interface ConstraintLocation {
 	 *
 	 * @return the member represented by this location. Will be {@code null} when this location represents a type.
 	 */
-	Constrainable getMember();
+	Constrainable getConstrainable();
 
 	/**
 	 * Returns the type to be used when resolving constraint validators for constraints at this location. Note that this

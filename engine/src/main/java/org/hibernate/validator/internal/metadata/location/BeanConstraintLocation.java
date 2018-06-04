@@ -48,7 +48,7 @@ class BeanConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public Constrainable getMember() {
+	public Constrainable getConstrainable() {
 		return null;
 	}
 

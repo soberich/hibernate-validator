@@ -52,8 +52,8 @@ public class TypeArgumentConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public Constrainable getMember() {
-		return delegate.getMember();
+	public Constrainable getConstrainable() {
+		return delegate.getConstrainable();
 	}
 
 	public TypeVariable<?> getTypeParameter() {

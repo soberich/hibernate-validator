@@ -40,7 +40,7 @@ class CrossParameterConstraintLocation implements ConstraintLocation {
 	}
 
 	@Override
-	public Constrainable getMember() {
+	public Constrainable getConstrainable() {
 		return callable;
 	}
 
