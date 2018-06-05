@@ -38,7 +38,7 @@ import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedFieldProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.properties.javabean.JavaBeanExecutable;
 import org.hibernate.validator.internal.util.TypeResolutionHelper;
@@ -133,7 +133,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void noGroupConversionOnField() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedProperty field = findConstrainedField( beanConfiguration, User.class, "mail" );
+		ConstrainedFieldProperty field = findConstrainedField( beanConfiguration, User.class, "mail" );
 
 		//then
 		assertThat( field.getCascadingMetaDataBuilder().getGroupConversions() ).isEmpty();
@@ -143,7 +143,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void singleGroupConversionOnField() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedProperty field = findConstrainedField( beanConfiguration, User.class, "phone" );
+		ConstrainedFieldProperty field = findConstrainedField( beanConfiguration, User.class, "phone" );
 
 		//then
 		Map<Class<?>, Class<?>> expected = newHashMap();
@@ -156,7 +156,7 @@ public class AnnotationMetaDataProviderTest extends AnnotationMetaDataProviderTe
 	public void multipleGroupConversionsOnField() throws Exception {
 		//when
 		BeanConfiguration<User> beanConfiguration = provider.getBeanConfiguration( User.class );
-		ConstrainedProperty field = findConstrainedField( beanConfiguration, User.class, "address" );
+		ConstrainedFieldProperty field = findConstrainedField( beanConfiguration, User.class, "address" );
 
 		//then
 		Map<Class<?>, Class<?>> expected = newHashMap();

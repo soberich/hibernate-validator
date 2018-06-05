@@ -44,7 +44,7 @@ import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedFieldProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.properties.Callable;
 import org.hibernate.validator.internal.util.CollectionHelper;
@@ -694,8 +694,8 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 
 			switch ( constrainedElement.getKind() ) {
 				case PROPERTY:
-					ConstrainedProperty constrainedField = (ConstrainedProperty) constrainedElement;
-					metaDataBuilder = new PropertyMetaData.Builder(
+					ConstrainedFieldProperty constrainedField = (ConstrainedFieldProperty) constrainedElement;
+					metaDataBuilder = PropertyMetaData.Builder.builder(
 							beanClass,
 							constrainedField,
 							constraintHelper,
@@ -724,7 +724,7 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 					}
 
 					if ( constrainedExecutable.isGetterMethod() ) {
-						metaDataBuilder = new PropertyMetaData.Builder(
+						metaDataBuilder = PropertyMetaData.Builder.builder(
 								beanClass,
 								constrainedExecutable,
 								constraintHelper,

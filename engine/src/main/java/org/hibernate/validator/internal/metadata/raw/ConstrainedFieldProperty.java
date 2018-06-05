@@ -18,7 +18,7 @@ import org.hibernate.validator.internal.properties.Property;
  *
  * @author Marko Bekhta
  */
-public class ConstrainedProperty extends AbstractConstrainedElement {
+public class ConstrainedFieldProperty extends AbstractConstrainedElement {
 
 	private final Property property;
 
@@ -31,7 +31,7 @@ public class ConstrainedProperty extends AbstractConstrainedElement {
 	 * @param typeArgumentConstraints Type arguments constraints, if any.
 	 * @param cascadingMetaDataBuilder The cascaded validation metadata for this element and its container elements.
 	 */
-	private ConstrainedProperty(ConfigurationSource source,
+	private ConstrainedFieldProperty(ConfigurationSource source,
 			Property property,
 			Set<MetaConstraint<?>> constraints,
 			Set<MetaConstraint<?>> typeArgumentConstraints,
@@ -42,12 +42,12 @@ public class ConstrainedProperty extends AbstractConstrainedElement {
 		this.property = property;
 	}
 
-	public static ConstrainedProperty forField(ConfigurationSource source,
+	public static ConstrainedFieldProperty forField(ConfigurationSource source,
 			Property property,
 			Set<MetaConstraint<?>> constraints,
 			Set<MetaConstraint<?>> typeArgumentConstraints,
 			CascadingMetaDataBuilder cascadingMetaDataBuilder) {
-		return new ConstrainedProperty( source, property, constraints, typeArgumentConstraints, cascadingMetaDataBuilder );
+		return new ConstrainedFieldProperty( source, property, constraints, typeArgumentConstraints, cascadingMetaDataBuilder );
 	}
 
 	public Property getProperty() {
@@ -77,7 +77,7 @@ public class ConstrainedProperty extends AbstractConstrainedElement {
 			return false;
 		}
 
-		ConstrainedProperty that = (ConstrainedProperty) o;
+		ConstrainedFieldProperty that = (ConstrainedFieldProperty) o;
 
 		return this.property.equals( that.property );
 	}

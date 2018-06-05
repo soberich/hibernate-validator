@@ -56,7 +56,7 @@ import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedParameter;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedFieldProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.properties.Callable;
 import org.hibernate.validator.internal.properties.Constrainable;
@@ -228,7 +228,7 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 		return propertyMetaData;
 	}
 
-	private ConstrainedProperty findPropertyMetaData(JavaBeanField javaBeanField) {
+	private ConstrainedFieldProperty findPropertyMetaData(JavaBeanField javaBeanField) {
 		Set<MetaConstraint<?>> constraints = convertToMetaConstraints(
 				findConstraints( javaBeanField, ConstraintLocationKind.PROPERTY ),
 				javaBeanField
@@ -237,7 +237,7 @@ public class AnnotationMetaDataProvider implements MetaDataProvider {
 		CascadingMetaDataBuilder cascadingMetaDataBuilder = findCascadingMetaData( javaBeanField );
 		Set<MetaConstraint<?>> typeArgumentsConstraints = findTypeAnnotationConstraints( javaBeanField );
 
-		return ConstrainedProperty.forField(
+		return ConstrainedFieldProperty.forField(
 				ConfigurationSource.ANNOTATION,
 				javaBeanField,
 				constraints,

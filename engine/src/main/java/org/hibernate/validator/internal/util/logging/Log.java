@@ -858,6 +858,6 @@ public interface Log extends BasicLogger {
 			@FormatWith(ClassObjectFormatter.class) Class<? extends Annotation> registeredConstraintAnnotationType,
 			@FormatWith(TypeFormatter.class) Type declaredConstraintAnnotationType);
 
-	@Message(id = 244, value = "ConstrainedElement expected class was %1$s, but instead received %2$s.")
-	AssertionError getUnexpectedConstraintElementType(@FormatWith(ClassObjectFormatter.class) Class<?> expecting, @FormatWith(ClassObjectFormatter.class) Class<?> got);
+	@Message(id = 244, value = "Received a ConstrainedElement of class %1$s, but expected types are %2$s.")
+	AssertionError getUnexpectedConstraintElementType(@FormatWith(ClassObjectFormatter.class) Class<?> got, @FormatWith(ArrayOfClassesObjectFormatter.class) Class<?>... expecting);
 }

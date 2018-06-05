@@ -14,7 +14,7 @@ import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement.ConstrainedElementKind;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedFieldProperty;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedType;
 import org.hibernate.validator.internal.properties.Constrainable;
 import org.hibernate.validator.internal.properties.javabean.JavaBeanExecutable;
@@ -25,10 +25,10 @@ import org.hibernate.validator.internal.properties.javabean.JavaBeanField;
  */
 public abstract class AnnotationMetaDataProviderTestBase {
 
-	protected <T> ConstrainedProperty findConstrainedField(BeanConfiguration<T> beanConfiguration,
+	protected <T> ConstrainedFieldProperty findConstrainedField(BeanConfiguration<T> beanConfiguration,
 														Class<? super T> clazz, String fieldName) throws Exception {
 
-		return (ConstrainedProperty) findConstrainedElement( beanConfiguration, clazz.getDeclaredField( fieldName ) );
+		return (ConstrainedFieldProperty) findConstrainedElement( beanConfiguration, clazz.getDeclaredField( fieldName ) );
 	}
 
 	protected <T> ConstrainedExecutable findConstrainedMethod(BeanConfiguration<T> beanConfiguration,
@@ -76,8 +76,8 @@ public abstract class AnnotationMetaDataProviderTestBase {
 					return constrainedElement;
 				}
 			}
-			else if ( constrainedElement instanceof ConstrainedProperty ) {
-				if ( constrainable.equals( ( (ConstrainedProperty) constrainedElement ).getProperty() ) ) {
+			else if ( constrainedElement instanceof ConstrainedFieldProperty ) {
+				if ( constrainable.equals( ( (ConstrainedFieldProperty) constrainedElement ).getProperty() ) ) {
 					return constrainedElement;
 				}
 			}

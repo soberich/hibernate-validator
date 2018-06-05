@@ -20,7 +20,7 @@ import org.hibernate.validator.internal.metadata.location.ConstraintLocation;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedExecutable;
-import org.hibernate.validator.internal.metadata.raw.ConstrainedProperty;
+import org.hibernate.validator.internal.metadata.raw.ConstrainedFieldProperty;
 import org.hibernate.validator.internal.properties.Callable;
 import org.hibernate.validator.internal.properties.Property;
 import org.hibernate.validator.internal.properties.javabean.JavaBeanField;
@@ -112,7 +112,7 @@ final class PropertyConstraintMappingContextImpl
 
 	ConstrainedElement build(ConstraintHelper constraintHelper, TypeResolutionHelper typeResolutionHelper, ValueExtractorManager valueExtractorManager) {
 		if ( property instanceof JavaBeanField ) {
-			return ConstrainedProperty.forField(
+			return ConstrainedFieldProperty.forField(
 					ConfigurationSource.API,
 					property,
 					getConstraints( constraintHelper, typeResolutionHelper, valueExtractorManager ),
