@@ -435,8 +435,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		final Map<Class<?>, Class<?>> validatedInterfaces = new HashMap<>();
 
 		// evaluating the constraints of a bean per class in hierarchy, this is necessary to detect potential default group re-definitions
-		for ( Class<? super U> clazz : beanMetaData.getClassHierarchy() ) {
-			BeanMetaData<? super U> hostingBeanMetaData = beanMetaDataManager.getBeanMetaData( clazz );
+		for ( BeanMetaData<? super U> hostingBeanMetaData : beanMetaData.getBeanMetadataHierarchy() ) {
 			boolean defaultGroupSequenceIsRedefined = hostingBeanMetaData.isDefaultGroupSequenceRedefined();
 
 			// if the current class redefined the default group sequence, this sequence has to be applied to all the class hierarchy.
@@ -449,7 +448,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 						boolean validationSuccessful = true;
 
 						for ( Group defaultSequenceMember : groupOfGroups ) {
-							validationSuccessful = validateConstraintsForSingleDefaultGroupElement( validationContext, valueContext, validatedInterfaces, clazz,
+							validationSuccessful = validateConstraintsForSingleDefaultGroupElement( validationContext, valueContext, validatedInterfaces, hostingBeanMetaData.getBeanClass(),
 									metaConstraints, defaultSequenceMember );
 						}
 						if ( !validationSuccessful ) {
@@ -461,7 +460,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 			// fast path in case the default group sequence hasn't been redefined
 			else {
 				Set<MetaConstraint<?>> metaConstraints = hostingBeanMetaData.getDirectMetaConstraints();
-				validateConstraintsForSingleDefaultGroupElement( validationContext, valueContext, validatedInterfaces, clazz, metaConstraints,
+				validateConstraintsForSingleDefaultGroupElement( validationContext, valueContext, validatedInterfaces, hostingBeanMetaData.getBeanClass(), metaConstraints,
 						Group.DEFAULT_GROUP );
 			}
 

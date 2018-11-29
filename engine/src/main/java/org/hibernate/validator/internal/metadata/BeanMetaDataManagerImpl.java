@@ -181,7 +181,7 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 			}
 		}
 
-		return builder.build();
+		return builder.build( this );
 	}
 
 	/**
