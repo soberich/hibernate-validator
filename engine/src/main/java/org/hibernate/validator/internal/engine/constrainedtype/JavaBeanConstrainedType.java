@@ -6,7 +6,12 @@
  */
 package org.hibernate.validator.internal.engine.constrainedtype;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.validator.engine.HibernateConstrainedType;
+import org.hibernate.validator.internal.util.classhierarchy.ClassHierarchyHelper;
+import org.hibernate.validator.internal.util.classhierarchy.Filter;
 
 /**
  * An implementation of {@link HibernateConstrainedType} for regular JavaBeans.
@@ -25,6 +30,16 @@ public class JavaBeanConstrainedType<T> implements HibernateConstrainedType<T> {
 	@Override
 	public Class<T> getActuallClass() {
 		return clazz;
+	}
+
+	@Override
+	public List<HibernateConstrainedType<? super T>> getHierarchy(Filter... filters) {
+		List<Class<? super T>> hierarchy = ClassHierarchyHelper.getHierarchy( clazz, filters );
+		List<HibernateConstrainedType<? super T>> result = new ArrayList<>( hierarchy.size() );
+		for ( Class<? super T> clazzz : hierarchy ) {
+			result.add( new JavaBeanConstrainedType<>( clazzz ) );
+		}
+		return result;
 	}
 
 	@Override

@@ -75,8 +75,8 @@ public class BeanMetaDataManagerTest {
 			for ( int i = 0; i < LOOP_COUNT; i++ ) {
 				Class<?> c = new CustomClassLoader().loadClass( Engine.class.getName() );
 				BeanMetaData<?> meta = getBeanMetadata( metaDataManager, c );
-				assertNotSame( meta.getBeanClass(), lastIterationsBean, "The classes should differ in each iteration" );
-				lastIterationsBean = meta.getBeanClass();
+				assertNotSame( meta.getConstrainedType().getActuallClass(), lastIterationsBean, "The classes should differ in each iteration" );
+				lastIterationsBean = meta.getConstrainedType().getActuallClass();
 				totalCreatedMetaDataInstances++;
 				cachedBeanMetaDataInstances = metaDataManager.numberOfCachedBeanMetaDataInstances();
 

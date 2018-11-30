@@ -171,16 +171,12 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	 * @return A bean meta data object for the given type.
 	 */
 	private <T> BeanMetaDataImpl<T> createBeanMetaData(HibernateConstrainedType<T> constrainedType) {
-		// FIXME: for now to make things compile we will just retrieve the actuall type and use it.
-		// But this should be refactored and HibernateConstrainedType should be used instead.
-		Class<T> clazz = constrainedType.getActuallClass();
-
 		BeanMetaDataBuilder<T> builder = BeanMetaDataBuilder.getInstance(
 				constraintCreationContext, executableHelper, parameterNameProvider,
-				validationOrderGenerator, clazz, methodValidationConfiguration );
+				validationOrderGenerator, constrainedType, methodValidationConfiguration );
 
 		for ( MetaDataProvider provider : metaDataProviders ) {
-			for ( BeanConfiguration<? super T> beanConfiguration : getBeanConfigurationForHierarchy( provider, clazz ) ) {
+			for ( BeanConfiguration<? super T> beanConfiguration : getBeanConfigurationForHierarchy( provider, constrainedType ) ) {
 				builder.add( beanConfiguration );
 			}
 		}
@@ -204,16 +200,16 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	 * Returns a list with the configurations for all types contained in the given type's hierarchy (including
 	 * implemented interfaces) starting at the specified type.
 	 *
-	 * @param beanClass The type of interest.
+	 * @param constrainedType The type of interest.
 	 * @param <T> The type of the class to get the configurations for.
 	 * @return A set with the configurations for the complete hierarchy of the given type. May be empty, but never
 	 * {@code null}.
 	 */
-	private <T> List<BeanConfiguration<? super T>> getBeanConfigurationForHierarchy(MetaDataProvider provider, Class<T> beanClass) {
+	private <T> List<BeanConfiguration<? super T>> getBeanConfigurationForHierarchy(MetaDataProvider provider, HibernateConstrainedType<T> constrainedType) {
 		List<BeanConfiguration<? super T>> configurations = newArrayList();
 
-		for ( Class<? super T> clazz : ClassHierarchyHelper.getHierarchy( beanClass ) ) {
-			BeanConfiguration<? super T> configuration = provider.getBeanConfiguration( clazz );
+		for ( HibernateConstrainedType<? super T> type : constrainedType.getHierarchy() ) {
+			BeanConfiguration<? super T> configuration = provider.getBeanConfiguration( type );
 			if ( configuration != null ) {
 				configurations.add( configuration );
 			}

@@ -11,6 +11,7 @@ import static org.hibernate.validator.internal.util.CollectionHelper.newHashSet;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
+import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.engine.ConstraintCreationContext;
 import org.hibernate.validator.internal.metadata.core.ConstraintOrigin;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
@@ -29,13 +30,13 @@ public abstract class MetaDataBuilder {
 
 	protected final ConstraintCreationContext constraintCreationContext;
 
-	private final Class<?> beanClass;
+	private final HibernateConstrainedType<?> constrainedType;
 	private final Set<MetaConstraint<?>> directConstraints = newHashSet();
 	private final Set<MetaConstraint<?>> containerElementsConstraints = newHashSet();
 	private boolean isCascading = false;
 
-	protected MetaDataBuilder(Class<?> beanClass, ConstraintCreationContext constraintCreationContext) {
-		this.beanClass = beanClass;
+	protected MetaDataBuilder(HibernateConstrainedType<?> constrainedType, ConstraintCreationContext constraintCreationContext) {
+		this.constrainedType = constrainedType;
 		this.constraintCreationContext = constraintCreationContext;
 	}
 
@@ -85,8 +86,8 @@ public abstract class MetaDataBuilder {
 		return isCascading;
 	}
 
-	protected Class<?> getBeanClass() {
-		return beanClass;
+	protected HibernateConstrainedType<?> getConstrainedType() {
+		return constrainedType;
 	}
 
 	/**
@@ -113,7 +114,7 @@ public abstract class MetaDataBuilder {
 	}
 
 	private <A extends Annotation> MetaConstraint<A> adaptOriginAndImplicitGroup(MetaConstraint<A> constraint) {
-		ConstraintOrigin definedIn = definedIn( beanClass, constraint.getLocation().getDeclaringClass() );
+		ConstraintOrigin definedIn = definedIn( constrainedType.getActuallClass(), constraint.getLocation().getDeclaringClass() );
 
 		if ( definedIn == ConstraintOrigin.DEFINED_LOCALLY ) {
 			return constraint;

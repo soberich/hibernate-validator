@@ -18,6 +18,7 @@ import java.util.Set;
 import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.engine.ConstraintCreationContext;
 import org.hibernate.validator.internal.engine.MethodValidationConfiguration;
+import org.hibernate.validator.internal.engine.constrainedtype.JavaBeanConstrainedType;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaDataBuilder;
@@ -75,13 +76,14 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 		Map<Class<?>, BeanMetaData<?>> tmpBeanMetadataMap = new HashMap<>();
 
 		for ( Class<?> validatedClass : beanClassesToInitialize ) {
+			JavaBeanConstrainedType constrainedType = new JavaBeanConstrainedType( validatedClass );
 			BeanMetaData<?> beanMetaData = createBeanMetaData( this, constraintCreationContext, executableHelper, parameterNameProvider,
 					javaBeanHelper, validationOrderGenerator, optionalMetaDataProviders, methodValidationConfiguration,
-					metaDataProviders, validatedClass );
+					metaDataProviders, constrainedType );
 
 			tmpBeanMetadataMap.put( validatedClass, beanMetaData );
 			for ( BeanMetaData<?> metaData : beanMetaData.getBeanMetadataHierarchy() ) {
-				tmpBeanMetadataMap.put( metaData.getBeanClass(), metaData );
+				tmpBeanMetadataMap.put( metaData.getConstrainedType().getActuallClass(), metaData );
 			}
 		}
 
@@ -110,7 +112,7 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 	 * data providers for the given type and its hierarchy.
 	 *
 	 * @param <T> The type of interest.
-	 * @param clazz The type's class.
+	 * @param constrainedType The type's class.
 	 *
 	 * @return A bean meta data object for the given type.
 	 */
@@ -123,13 +125,13 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 			List<MetaDataProvider> optionalMetaDataProviders,
 			MethodValidationConfiguration methodValidationConfiguration,
 			List<MetaDataProvider> metaDataProviders,
-			Class<T> clazz) {
+			HibernateConstrainedType<T> constrainedType) {
 		BeanMetaDataBuilder<T> builder = BeanMetaDataBuilder.getInstance(
 				constraintCreationContext, executableHelper, parameterNameProvider,
-				validationOrderGenerator, clazz, methodValidationConfiguration );
+				validationOrderGenerator, constrainedType, methodValidationConfiguration );
 
 		for ( MetaDataProvider provider : metaDataProviders ) {
-			for ( BeanConfiguration<? super T> beanConfiguration : getBeanConfigurationForHierarchy( provider, clazz ) ) {
+			for ( BeanConfiguration<? super T> beanConfiguration : getBeanConfigurationForHierarchy( provider, constrainedType ) ) {
 				builder.add( beanConfiguration );
 			}
 		}
@@ -153,15 +155,15 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 	 * Returns a list with the configurations for all types contained in the given type's hierarchy (including
 	 * implemented interfaces) starting at the specified type.
 	 *
-	 * @param beanClass The type of interest.
+	 * @param constrainedType The type of interest.
 	 * @param <T> The type of the class to get the configurations for.
 	 * @return A set with the configurations for the complete hierarchy of the given type. May be empty, but never
 	 * {@code null}.
 	 */
-	private static <T> List<BeanConfiguration<? super T>> getBeanConfigurationForHierarchy(MetaDataProvider provider, Class<T> beanClass) {
+	private static <T> List<BeanConfiguration<? super T>> getBeanConfigurationForHierarchy(MetaDataProvider provider, HibernateConstrainedType<T> constrainedType) {
 		List<BeanConfiguration<? super T>> configurations = newArrayList();
 
-		for ( Class<? super T> clazz : ClassHierarchyHelper.getHierarchy( beanClass ) ) {
+		for ( HibernateConstrainedType<? super T> clazz : constrainedType.getHierarchy() ) {
 			BeanConfiguration<? super T> configuration = provider.getBeanConfiguration( clazz );
 			if ( configuration != null ) {
 				configurations.add( configuration );

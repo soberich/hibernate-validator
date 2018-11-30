@@ -488,7 +488,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 						boolean validationSuccessful = true;
 
 						for ( Group defaultSequenceMember : groupOfGroups ) {
-							validationSuccessful = validateConstraintsForSingleDefaultGroupElement( validationContext, valueContext, validatedInterfaces, hostingBeanMetaData.getBeanClass(),
+							validationSuccessful = validateConstraintsForSingleDefaultGroupElement( validationContext, valueContext, validatedInterfaces, hostingBeanMetaData.getConstrainedType(),
 									metaConstraints, defaultSequenceMember );
 						}
 						if ( !validationSuccessful ) {
@@ -500,7 +500,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 			// fast path in case the default group sequence hasn't been redefined
 			else {
 				Set<MetaConstraint<?>> metaConstraints = hostingBeanMetaData.getDirectMetaConstraints();
-				validateConstraintsForSingleDefaultGroupElement( validationContext, valueContext, validatedInterfaces, hostingBeanMetaData.getBeanClass(), metaConstraints,
+				validateConstraintsForSingleDefaultGroupElement( validationContext, valueContext, validatedInterfaces, hostingBeanMetaData.getConstrainedType(), metaConstraints,
 						Group.DEFAULT_GROUP );
 			}
 
@@ -514,10 +514,13 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 	}
 
 	private <U> boolean validateConstraintsForSingleDefaultGroupElement(BaseBeanValidationContext<?> validationContext, ValueContext<U, Object> valueContext, final Map<Class<?>, Class<?>> validatedInterfaces,
-			Class<? super U> clazz, Set<MetaConstraint<?>> metaConstraints, Group defaultSequenceMember) {
+			HibernateConstrainedType<? super U> constrainedType, Set<MetaConstraint<?>> metaConstraints, Group defaultSequenceMember) {
 		boolean validationSuccessful = true;
 
 		valueContext.setCurrentGroup( defaultSequenceMember.getDefiningClass() );
+
+		// TODO: Location should also use this new constrainedType class and this part will be updated than...
+		Class<? super U> clazz = constrainedType.getActuallClass();
 
 		for ( MetaConstraint<?> metaConstraint : metaConstraints ) {
 			// HV-466, an interface implemented more than one time in the hierarchy has to be validated only one
@@ -1389,7 +1392,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 
 	private PropertyMetaData getBeanPropertyMetaData(BeanMetaData<?> beanMetaData, Path.Node propertyNode) {
 		if ( !ElementKind.PROPERTY.equals( propertyNode.getKind() ) ) {
-			throw LOG.getInvalidPropertyPathException( beanMetaData.getBeanClass(), propertyNode.getName() );
+			throw LOG.getInvalidPropertyPathException( beanMetaData.getConstrainedType().getActuallClass(), propertyNode.getName() );
 		}
 
 		return beanMetaData.getMetaDataFor( propertyNode.getName() );
