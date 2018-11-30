@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.engine.ConstraintCreationContext;
 import org.hibernate.validator.internal.engine.MethodValidationConfiguration;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
@@ -85,7 +86,7 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	/**
 	 * Used to cache the constraint meta data for validated entities
 	 */
-	private final ConcurrentReferenceHashMap<Class<?>, BeanMetaData<?>> beanMetaDataCache;
+	private final ConcurrentReferenceHashMap<HibernateConstrainedType<?>, BeanMetaData<?>> beanMetaDataCache;
 
 	/**
 	 * Used for resolving type parameters. Thread-safe.
@@ -141,12 +142,11 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 		this.metaDataProviders = CollectionHelper.toImmutableList( tmpMetaDataProviders );
 	}
 
-	@Override
 	@SuppressWarnings("unchecked")
-	public <T> BeanMetaData<T> getBeanMetaData(Class<T> beanClass) {
-		Contracts.assertNotNull( beanClass, MESSAGES.beanTypeCannotBeNull() );
+	public <T> BeanMetaData<T> getBeanMetaData(HibernateConstrainedType<T> constrainedType) {
+		Contracts.assertNotNull( constrainedType, MESSAGES.beanTypeCannotBeNull() );
 
-		BeanMetaData<T> beanMetaData = (BeanMetaData<T>) beanMetaDataCache.computeIfAbsent( beanClass,
+		BeanMetaData<T> beanMetaData = (BeanMetaData<T>) beanMetaDataCache.computeIfAbsent( constrainedType,
 				bc -> createBeanMetaData( bc ) );
 
 		return beanMetaData;
@@ -166,11 +166,15 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	 * data providers for the given type and its hierarchy.
 	 *
 	 * @param <T> The type of interest.
-	 * @param clazz The type's class.
+	 * @param constrainedType The type's class.
 	 *
 	 * @return A bean meta data object for the given type.
 	 */
-	private <T> BeanMetaDataImpl<T> createBeanMetaData(Class<T> clazz) {
+	private <T> BeanMetaDataImpl<T> createBeanMetaData(HibernateConstrainedType<T> constrainedType) {
+		// FIXME: for now to make things compile we will just retrieve the actuall type and use it.
+		// But this should be refactored and HibernateConstrainedType should be used instead.
+		Class<T> clazz = constrainedType.getActuallClass();
+
 		BeanMetaDataBuilder<T> builder = BeanMetaDataBuilder.getInstance(
 				constraintCreationContext, executableHelper, parameterNameProvider,
 				validationOrderGenerator, clazz, methodValidationConfiguration );

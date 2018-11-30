@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.engine.ConstraintCreationContext;
 import org.hibernate.validator.internal.engine.MethodValidationConfiguration;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
@@ -91,10 +92,10 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> BeanMetaData<T> getBeanMetaData(Class<T> beanClass) {
-		BeanMetaData<T> beanMetaData = (BeanMetaData<T>) beanMetaDataMap.get( beanMetaDataClassNormalizer.normalize( beanClass ) );
+	public <T> BeanMetaData<T> getBeanMetaData(HibernateConstrainedType<T> constrainedType) {
+		BeanMetaData<T> beanMetaData = (BeanMetaData<T>) beanMetaDataMap.get( beanMetaDataClassNormalizer.normalize( constrainedType.getActuallClass() ) );
 		if ( beanMetaData == null ) {
-			throw LOG.uninitializedBeanMetaData( beanClass );
+			throw LOG.uninitializedBeanMetaData( constrainedType.getActuallClass() );
 		}
 		return beanMetaData;
 	}

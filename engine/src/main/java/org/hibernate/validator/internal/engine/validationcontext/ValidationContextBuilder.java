@@ -12,6 +12,7 @@ import javax.validation.ConstraintValidatorFactory;
 import javax.validation.TraversableResolver;
 
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorInitializationContext;
+import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorManager;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
@@ -47,10 +48,9 @@ public class ValidationContextBuilder {
 		this.validatorScopedContext = validatorScopedContext;
 	}
 
-	public <T> BaseBeanValidationContext<T> forValidate(T rootBean) {
-		@SuppressWarnings("unchecked")
-		Class<T> rootBeanClass = (Class<T>) rootBean.getClass();
-		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( rootBeanClass );
+	public <T> BaseBeanValidationContext<T> forValidate(T rootBean, HibernateConstrainedType<T> currentBeanType) {
+		Class<T> rootBeanClass = currentBeanType.getActuallClass();
+		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( currentBeanType );
 
 		return new BeanValidationContext<>(
 				constraintValidatorManager,
@@ -64,10 +64,9 @@ public class ValidationContextBuilder {
 		);
 	}
 
-	public <T> BaseBeanValidationContext<T> forValidateProperty(T rootBean, PathImpl propertyPath) {
-		@SuppressWarnings("unchecked")
-		Class<T> rootBeanClass = (Class<T>) rootBean.getClass();
-		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( rootBeanClass );
+	public <T> BaseBeanValidationContext<T> forValidateProperty(T rootBean, HibernateConstrainedType<T> currentBeanType, PathImpl propertyPath) {
+		Class<T> rootBeanClass = currentBeanType.getActuallClass();
+		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( currentBeanType );
 
 		return new PropertyValidationContext<>(
 				constraintValidatorManager,
@@ -82,8 +81,9 @@ public class ValidationContextBuilder {
 		);
 	}
 
-	public <T> BaseBeanValidationContext<T> forValidateValue(Class<T> rootBeanClass, PathImpl propertyPath) {
-		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( rootBeanClass );
+	public <T> BaseBeanValidationContext<T> forValidateValue(HibernateConstrainedType<T> currentBeanType, PathImpl propertyPath) {
+		Class<T> rootBeanClass = currentBeanType.getActuallClass();
+		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( currentBeanType );
 
 		return new PropertyValidationContext<>(
 				constraintValidatorManager,
@@ -100,11 +100,11 @@ public class ValidationContextBuilder {
 
 	public <T> ExecutableValidationContext<T> forValidateParameters(
 			T rootBean,
+			HibernateConstrainedType<T> currentBeanType,
 			Executable executable,
 			Object[] executableParameters) {
-		@SuppressWarnings("unchecked")
-		Class<T> rootBeanClass = rootBean != null ? (Class<T>) rootBean.getClass() : (Class<T>) executable.getDeclaringClass();
-		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( rootBeanClass );
+		Class<T> rootBeanClass = currentBeanType.getActuallClass();
+		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( currentBeanType );
 
 		return new ParameterExecutableValidationContext<>(
 				constraintValidatorManager,
@@ -123,11 +123,12 @@ public class ValidationContextBuilder {
 
 	public <T> ExecutableValidationContext<T> forValidateReturnValue(
 			T rootBean,
+			HibernateConstrainedType<T> currentBeanType,
 			Executable executable,
 			Object executableReturnValue) {
 		@SuppressWarnings("unchecked")
 		Class<T> rootBeanClass = rootBean != null ? (Class<T>) rootBean.getClass() : (Class<T>) executable.getDeclaringClass();
-		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( rootBeanClass );
+		BeanMetaData<T> rootBeanMetaData = beanMetaDataManager.getBeanMetaData( currentBeanType );
 
 		return new ReturnValueExecutableValidationContext<>(
 				constraintValidatorManager,

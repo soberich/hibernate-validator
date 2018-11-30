@@ -27,6 +27,7 @@ import javax.validation.metadata.BeanDescriptor;
 import javax.validation.metadata.ConstructorDescriptor;
 import javax.validation.metadata.PropertyDescriptor;
 
+import org.hibernate.validator.internal.engine.constrainedtype.JavaBeanConstrainedType;
 import org.hibernate.validator.internal.engine.groups.Sequence;
 import org.hibernate.validator.internal.engine.groups.ValidationOrder;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
@@ -228,7 +229,7 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 		// metadata for a class `beanClass` should go as a first element in the list
 		beanMetadataHierarchy.add( this );
 		for ( int index = 1; index < hierarchy.size(); index++ ) {
-			beanMetadataHierarchy.add( beanMetaDataManager.getBeanMetaData( hierarchy.get( index ) ) );
+			beanMetadataHierarchy.add( beanMetaDataManager.getBeanMetaData( new JavaBeanConstrainedType<>( hierarchy.get( index ) ) ) );
 		}
 
 		this.beanMetadataHierarchyWithoutInterfaces = CollectionHelper.toImmutableList( beanMetadataHierarchy );
