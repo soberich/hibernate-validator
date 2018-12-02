@@ -28,6 +28,7 @@ import javax.validation.metadata.ConstructorDescriptor;
 import javax.validation.metadata.PropertyDescriptor;
 
 import org.hibernate.validator.engine.HibernateConstrainedType;
+import org.hibernate.validator.internal.engine.constrainedtype.JavaBeanConstrainedType;
 import org.hibernate.validator.internal.engine.groups.Sequence;
 import org.hibernate.validator.internal.engine.groups.ValidationOrder;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
@@ -491,13 +492,16 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 	private Set<MetaConstraint<?>> getDirectConstraints() {
 		Set<MetaConstraint<?>> constraints = newHashSet();
 
-		Set<Class<?>> classAndInterfaces = newHashSet();
-		classAndInterfaces.add( constrainedType.getActuallClass() );
-		classAndInterfaces.addAll( ClassHierarchyHelper.getDirectlyImplementedInterfaces( constrainedType.getActuallClass() ) );
+		Set<HibernateConstrainedType<?>> classAndInterfaces = newHashSet();
+		classAndInterfaces.add( constrainedType );
+		for ( Class<? super T> directlyImplementedInterface : ClassHierarchyHelper.getDirectlyImplementedInterfaces( constrainedType.getActuallClass() ) ) {
+			classAndInterfaces.add( new JavaBeanConstrainedType<>( directlyImplementedInterface ) );
+		}
 
-		for ( Class<?> clazz : classAndInterfaces ) {
+
+		for ( HibernateConstrainedType<?> type : classAndInterfaces ) {
 			for ( MetaConstraint<?> metaConstraint : allMetaConstraints ) {
-				if ( metaConstraint.getLocation().getDeclaringClass().equals( clazz ) ) {
+				if ( metaConstraint.getLocation().getDeclaringConstrainedType().equals( type ) ) {
 					constraints.add( metaConstraint );
 				}
 			}

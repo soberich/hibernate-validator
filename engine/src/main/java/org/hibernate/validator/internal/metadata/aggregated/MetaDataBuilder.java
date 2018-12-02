@@ -114,20 +114,20 @@ public abstract class MetaDataBuilder {
 	}
 
 	private <A extends Annotation> MetaConstraint<A> adaptOriginAndImplicitGroup(MetaConstraint<A> constraint) {
-		ConstraintOrigin definedIn = definedIn( constrainedType.getActuallClass(), constraint.getLocation().getDeclaringClass() );
+		ConstraintOrigin definedIn = definedIn( constrainedType, constraint.getLocation().getDeclaringConstrainedType() );
 
 		if ( definedIn == ConstraintOrigin.DEFINED_LOCALLY ) {
 			return constraint;
 		}
 
-		Class<?> constraintClass = constraint.getLocation().getDeclaringClass();
+		HibernateConstrainedType<?> constraintClass = constraint.getLocation().getDeclaringConstrainedType();
 
 		ConstraintDescriptorImpl<A> descriptor = new ConstraintDescriptorImpl<>(
 				constraintCreationContext.getConstraintHelper(),
 				constraint.getLocation().getConstrainable(),
 				constraint.getDescriptor().getAnnotationDescriptor(),
 				constraint.getConstraintLocationKind(),
-				constraintClass.isInterface() ? constraintClass : null,
+				constraintClass.isInterface() ? constraintClass.getActuallClass() : null,
 				definedIn,
 				constraint.getDescriptor().getConstraintType()
 		);
@@ -153,7 +153,7 @@ public abstract class MetaDataBuilder {
 	 *         constraint was defined on the root bean,
 	 *         {@code ConstraintOrigin.DEFINED_IN_HIERARCHY} otherwise.
 	 */
-	private ConstraintOrigin definedIn(Class<?> rootClass, Class<?> hierarchyClass) {
+	private ConstraintOrigin definedIn(HibernateConstrainedType<?> rootClass, HibernateConstrainedType<?> hierarchyClass) {
 		if ( hierarchyClass.equals( rootClass ) ) {
 			return ConstraintOrigin.DEFINED_LOCALLY;
 		}

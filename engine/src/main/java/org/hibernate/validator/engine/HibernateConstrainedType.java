@@ -26,4 +26,6 @@ public interface HibernateConstrainedType<T> {
 	Class<T> getActuallClass();
 
 	List<HibernateConstrainedType<? super T>> getHierarchy(Filter... filters);
+
+	boolean isInterface();
 }

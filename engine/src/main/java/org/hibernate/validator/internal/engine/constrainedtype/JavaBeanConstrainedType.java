@@ -43,6 +43,11 @@ public class JavaBeanConstrainedType<T> implements HibernateConstrainedType<T> {
 	}
 
 	@Override
+	public boolean isInterface() {
+		return clazz.isInterface();
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if ( this == o ) {
 			return true;

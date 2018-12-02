@@ -472,7 +472,7 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 
 	private <U> void validateConstraintsForDefaultGroup(BaseBeanValidationContext<?> validationContext, BeanValueContext<U, Object> valueContext) {
 		final BeanMetaData<U> beanMetaData = valueContext.getCurrentBeanMetaData();
-		final Map<Class<?>, Class<?>> validatedInterfaces = new HashMap<>();
+		final Map<HibernateConstrainedType<?>, HibernateConstrainedType<?>> validatedInterfaces = new HashMap<>();
 
 		// evaluating the constraints of a bean per class in hierarchy, this is necessary to detect potential default group re-definitions
 		for ( BeanMetaData<? super U> hostingBeanMetaData : beanMetaData.getBeanMetadataHierarchy() ) {
@@ -513,25 +513,22 @@ public class ValidatorImpl implements Validator, ExecutableValidator {
 		}
 	}
 
-	private <U> boolean validateConstraintsForSingleDefaultGroupElement(BaseBeanValidationContext<?> validationContext, ValueContext<U, Object> valueContext, final Map<Class<?>, Class<?>> validatedInterfaces,
+	private <U> boolean validateConstraintsForSingleDefaultGroupElement(BaseBeanValidationContext<?> validationContext, ValueContext<U, Object> valueContext, final Map<HibernateConstrainedType<?>, HibernateConstrainedType<?>> validatedInterfaces,
 			HibernateConstrainedType<? super U> constrainedType, Set<MetaConstraint<?>> metaConstraints, Group defaultSequenceMember) {
 		boolean validationSuccessful = true;
 
 		valueContext.setCurrentGroup( defaultSequenceMember.getDefiningClass() );
 
-		// TODO: Location should also use this new constrainedType class and this part will be updated than...
-		Class<? super U> clazz = constrainedType.getActuallClass();
-
 		for ( MetaConstraint<?> metaConstraint : metaConstraints ) {
 			// HV-466, an interface implemented more than one time in the hierarchy has to be validated only one
 			// time. An interface can define more than one constraint, we have to check the class we are validating.
-			final Class<?> declaringClass = metaConstraint.getLocation().getDeclaringClass();
+			final HibernateConstrainedType<?> declaringClass = metaConstraint.getLocation().getDeclaringConstrainedType();
 			if ( declaringClass.isInterface() ) {
-				Class<?> validatedForClass = validatedInterfaces.get( declaringClass );
-				if ( validatedForClass != null && !validatedForClass.equals( clazz ) ) {
+				HibernateConstrainedType<?> validatedForClass = validatedInterfaces.get( declaringClass );
+				if ( validatedForClass != null && !validatedForClass.equals( constrainedType ) ) {
 					continue;
 				}
-				validatedInterfaces.put( declaringClass, clazz );
+				validatedInterfaces.put( declaringClass, constrainedType );
 			}
 
 			boolean tmp = validateMetaConstraint( validationContext, valueContext, valueContext.getCurrentBean(), metaConstraint );

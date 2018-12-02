@@ -413,7 +413,7 @@ public class ExecutableMetaData extends AbstractConstraintMetaData {
 					for ( ConstrainedParameter oneParameter : oneExecutable.getAllParameterMetaData() ) {
 						parameterBuilders.add(
 								new ParameterMetaData.Builder(
-										// TODO: is ot OK to use this constrained type instead of calling the `callable.getDeclaringClass()` ?
+										// TODO: is ot OK to use this constrained type instead of calling the `callable.getDeclaringConstrainedType()` ?
 										getConstrainedType(),
 										oneParameter,
 										constraintCreationContext,
