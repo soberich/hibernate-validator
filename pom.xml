@@ -153,6 +153,8 @@
         <!-- JavaMoney dependencies -->
         <version.javax.money>1.0.1</version.javax.money>
         <version.org.javamoney.moneta>1.1</version.org.javamoney.moneta>
+        <!-- ByteBuddy dependencies-->
+        <version.net.bytebuddy.byte-buddy>1.9.5</version.net.bytebuddy.byte-buddy>
         <!-- Used in the Karaf features file: it is a dependency of Moneta, and for the documentation -->
         <version.javax.annotation>1.2</version.javax.annotation>
 
@@ -360,6 +362,11 @@
                 <groupId>org.javamoney</groupId>
                 <artifactId>moneta</artifactId>
                 <version>${version.org.javamoney.moneta}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${version.net.bytebuddy.byte-buddy}</version>
             </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>

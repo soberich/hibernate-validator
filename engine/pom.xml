@@ -47,6 +47,10 @@
             <groupId>com.fasterxml</groupId>
             <artifactId>classmate</artifactId>
         </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+        </dependency>
 
         <!--
         Provided dependencies
