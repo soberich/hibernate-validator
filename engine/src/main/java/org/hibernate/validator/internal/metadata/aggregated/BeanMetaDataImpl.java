@@ -32,7 +32,6 @@ import org.hibernate.validator.internal.engine.constrainedtype.JavaBeanConstrain
 import org.hibernate.validator.internal.engine.groups.Sequence;
 import org.hibernate.validator.internal.engine.groups.ValidationOrder;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
-import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
 import org.hibernate.validator.internal.metadata.core.MetaConstraint;
 import org.hibernate.validator.internal.metadata.descriptor.BeanDescriptorImpl;
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
@@ -42,7 +41,6 @@ import org.hibernate.validator.internal.metadata.location.ConstraintLocation.Con
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.ExecutableHelper;
 import org.hibernate.validator.internal.util.classhierarchy.ClassHierarchyHelper;
-import org.hibernate.validator.internal.util.classhierarchy.Filters;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;
@@ -166,16 +164,17 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 	/**
 	 * Creates a new {@link BeanMetaDataImpl}
 	 *
-	 * @param beanClass The Java type represented by this meta data object.
+	 * @param constrainedType The Java type represented by this meta data object.
 	 * @param defaultGroupSequence The default group sequence.
 	 * @param defaultGroupSequenceProvider The default group sequence provider if set.
 	 * @param constraintMetaDataSet All constraint meta data relating to the represented type.
 	 */
-	public BeanMetaDataImpl(BeanMetaDataManager beanMetaDataManager, HibernateConstrainedType<T> constrainedType,
-							List<Class<?>> defaultGroupSequence,
-							DefaultGroupSequenceProvider<? super T> defaultGroupSequenceProvider,
-							Set<ConstraintMetaData> constraintMetaDataSet,
-							ValidationOrderGenerator validationOrderGenerator) {
+	public BeanMetaDataImpl(HibernateConstrainedType<T> constrainedType,
+			List<Class<?>> defaultGroupSequence,
+			DefaultGroupSequenceProvider<? super T> defaultGroupSequenceProvider,
+			Set<ConstraintMetaData> constraintMetaDataSet,
+			ValidationOrderGenerator validationOrderGenerator,
+			List<BeanMetaData<?>> beanMetadataHierarchy) {
 		this.validationOrderGenerator = validationOrderGenerator;
 		this.constrainedType = constrainedType;
 		this.propertyMetaDataMap = newHashMap();
@@ -221,18 +220,14 @@ public final class BeanMetaDataImpl<T> implements BeanMetaData<T> {
 		this.cascadedProperties = CollectionHelper.toImmutableSet( cascadedProperties );
 		this.allMetaConstraints = CollectionHelper.toImmutableSet( allMetaConstraints );
 
-		// get the metadata for all other classes in hierarchy:
-		List<HibernateConstrainedType<? super T>> hierarchy = constrainedType.getHierarchy( Filters.excludeInterfaces() );
-
-		List<BeanMetaData<? super T>> beanMetadataHierarchy = new ArrayList<>( hierarchy.size() );
+		List<BeanMetaData<? super T>> beanMetadataHierarchyTmp = new ArrayList<>( beanMetadataHierarchy.size() + 1 );
 		// metadata for a class `beanClass` should go as a first element in the list
-		beanMetadataHierarchy.add( this );
-		for ( int index = 1; index < hierarchy.size(); index++ ) {
-			beanMetadataHierarchy.add( beanMetaDataManager.getBeanMetaData( hierarchy.get( index ) ) );
+		beanMetadataHierarchyTmp.add( this );
+		for ( BeanMetaData<?> beanMetaData : beanMetadataHierarchy ) {
+			beanMetadataHierarchyTmp.add( (BeanMetaData<? super T>) beanMetaData );
 		}
 
-		this.beanMetadataHierarchyWithoutInterfaces = CollectionHelper.toImmutableList( beanMetadataHierarchy );
-
+		this.beanMetadataHierarchyWithoutInterfaces = CollectionHelper.toImmutableList( beanMetadataHierarchyTmp );
 
 		DefaultGroupSequenceContext<? super T> defaultGroupContext = getDefaultGroupSequenceData( constrainedType.getActuallClass(), defaultGroupSequence, defaultGroupSequenceProvider, validationOrderGenerator );
 		this.defaultGroupSequenceProvider = defaultGroupContext.defaultGroupSequenceProvider;

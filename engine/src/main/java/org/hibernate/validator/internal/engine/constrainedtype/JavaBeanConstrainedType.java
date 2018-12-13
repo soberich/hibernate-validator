@@ -69,4 +69,11 @@ public class JavaBeanConstrainedType<T> implements HibernateConstrainedType<T> {
 	public int hashCode() {
 		return clazz.hashCode();
 	}
+
+	@Override
+	public String toString() {
+		return "JavaBeanConstrainedType{" +
+				"clazz=" + clazz +
+				'}';
+	}
 }

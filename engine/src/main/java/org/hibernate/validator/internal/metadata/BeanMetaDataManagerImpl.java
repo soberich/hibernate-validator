@@ -12,6 +12,7 @@ import static org.hibernate.validator.internal.util.ConcurrentReferenceHashMap.R
 import static org.hibernate.validator.internal.util.logging.Messages.MESSAGES;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -21,7 +22,6 @@ import org.hibernate.validator.internal.engine.MethodValidationConfiguration;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaDataBuilder;
-import org.hibernate.validator.internal.metadata.aggregated.BeanMetaDataImpl;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptions;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.provider.AnnotationMetaDataProvider;
@@ -33,7 +33,7 @@ import org.hibernate.validator.internal.util.ConcurrentReferenceHashMap;
 import org.hibernate.validator.internal.util.Contracts;
 import org.hibernate.validator.internal.util.ExecutableHelper;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
-import org.hibernate.validator.internal.util.classhierarchy.ClassHierarchyHelper;
+import org.hibernate.validator.internal.util.classhierarchy.Filters;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;
 
 /**
@@ -52,7 +52,7 @@ import org.hibernate.validator.internal.util.stereotypes.Immutable;
  * @author Gunnar Morling
  * @author Chris Beckey &lt;cbeckey@paypal.com&gt;
  * @author Guillaume Smet
-*/
+ */
 public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	/**
 	 * The default initial capacity for this cache.
@@ -146,7 +146,8 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	public <T> BeanMetaData<T> getBeanMetaData(HibernateConstrainedType<T> constrainedType) {
 		Contracts.assertNotNull( constrainedType, MESSAGES.beanTypeCannotBeNull() );
 
-		BeanMetaData<T> beanMetaData = (BeanMetaData<T>) beanMetaDataCache.computeIfAbsent( constrainedType,
+		BeanMetaData<T> beanMetaData = (BeanMetaData<T>) beanMetaDataCache.computeIfAbsent(
+				constrainedType,
 				bc -> createBeanMetaData( bc ) );
 
 		return beanMetaData;
@@ -170,7 +171,26 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	 *
 	 * @return A bean meta data object for the given type.
 	 */
-	private <T> BeanMetaDataImpl<T> createBeanMetaData(HibernateConstrainedType<T> constrainedType) {
+	private <T> BeanMetaData<T> createBeanMetaData(HibernateConstrainedType<T> constrainedType) {
+		List<HibernateConstrainedType<? super T>> hierarchy = constrainedType.getHierarchy( Filters.excludeInterfaces() );
+
+		if ( hierarchy.isEmpty() ) {
+			// it means that our `constrained type is an interface and we don't care about super-type bean metadata.
+			// can happen if not a real class is passed for validation but for example a Validator#getConstraintsForClass(Class<?>)
+			// is called
+			hierarchy = Collections.singletonList( constrainedType );
+		}
+
+		List<BeanMetaData<?>> list = new ArrayList<>( hierarchy.size() );
+		for ( int index = hierarchy.size() - 1; index > -1; index-- ) {
+			HibernateConstrainedType<? super T> type = hierarchy.get( index );
+			list.add( 0, beanMetaDataCache.computeIfAbsent( type, cType -> findSingleBeanMetaData( cType, list ) ) );
+		}
+
+		return (BeanMetaData<T>) list.get( 0 );
+	}
+
+	private <T> BeanMetaData<T> findSingleBeanMetaData(HibernateConstrainedType<T> constrainedType, List<BeanMetaData<?>> hierarchy) {
 		BeanMetaDataBuilder<T> builder = BeanMetaDataBuilder.getInstance(
 				constraintCreationContext, executableHelper, parameterNameProvider,
 				validationOrderGenerator, constrainedType, methodValidationConfiguration );
@@ -180,8 +200,7 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 				builder.add( beanConfiguration );
 			}
 		}
-
-		return builder.build( this );
+		return builder.build( hierarchy );
 	}
 
 	/**
@@ -202,6 +221,7 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	 *
 	 * @param constrainedType The type of interest.
 	 * @param <T> The type of the class to get the configurations for.
+	 *
 	 * @return A set with the configurations for the complete hierarchy of the given type. May be empty, but never
 	 * {@code null}.
 	 */

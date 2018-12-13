@@ -10,6 +10,7 @@ import static org.hibernate.validator.internal.util.CollectionHelper.newArrayLis
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,6 @@ import org.hibernate.validator.internal.engine.constrainedtype.JavaBeanConstrain
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaDataBuilder;
-import org.hibernate.validator.internal.metadata.aggregated.BeanMetaDataImpl;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptions;
 import org.hibernate.validator.internal.metadata.core.AnnotationProcessingOptionsImpl;
 import org.hibernate.validator.internal.metadata.provider.AnnotationMetaDataProvider;
@@ -32,7 +32,6 @@ import org.hibernate.validator.internal.properties.javabean.JavaBeanHelper;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.ExecutableHelper;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
-import org.hibernate.validator.internal.util.classhierarchy.ClassHierarchyHelper;
 import org.hibernate.validator.internal.util.classhierarchy.Filters;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
@@ -77,9 +76,9 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 
 		for ( Class<?> validatedClass : beanClassesToInitialize ) {
 			JavaBeanConstrainedType constrainedType = new JavaBeanConstrainedType( validatedClass );
-			BeanMetaData<?> beanMetaData = createBeanMetaData( this, constraintCreationContext, executableHelper, parameterNameProvider,
-					javaBeanHelper, validationOrderGenerator, optionalMetaDataProviders, methodValidationConfiguration,
-					metaDataProviders, constrainedType );
+			BeanMetaData<?> beanMetaData = createBeanMetaData( constraintCreationContext, executableHelper, parameterNameProvider,
+					javaBeanHelper, validationOrderGenerator, methodValidationConfiguration,
+					metaDataProviders, tmpBeanMetadataMap, constrainedType );
 
 			tmpBeanMetadataMap.put( validatedClass, beanMetaData );
 			for ( BeanMetaData<?> metaData : beanMetaData.getBeanMetadataHierarchy() ) {
@@ -112,20 +111,52 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 	 * data providers for the given type and its hierarchy.
 	 *
 	 * @param <T> The type of interest.
+	 * @param beanMetaDataCache The temporary map that might have some of the requried metadata already created
 	 * @param constrainedType The type's class.
 	 *
 	 * @return A bean meta data object for the given type.
 	 */
-	private static <T> BeanMetaDataImpl<T> createBeanMetaData(BeanMetaDataManager beanMetaDataManager,
-			ConstraintCreationContext constraintCreationContext,
+	private static <T> BeanMetaData<T> createBeanMetaData(ConstraintCreationContext constraintCreationContext,
 			ExecutableHelper executableHelper,
 			ExecutableParameterNameProvider parameterNameProvider,
 			JavaBeanHelper javaBeanHelper,
 			ValidationOrderGenerator validationOrderGenerator,
-			List<MetaDataProvider> optionalMetaDataProviders,
 			MethodValidationConfiguration methodValidationConfiguration,
 			List<MetaDataProvider> metaDataProviders,
+			Map<Class<?>, BeanMetaData<?>> beanMetaDataCache,
 			HibernateConstrainedType<T> constrainedType) {
+		List<HibernateConstrainedType<? super T>> hierarchy = constrainedType.getHierarchy( Filters.excludeInterfaces() );
+
+		if ( hierarchy.isEmpty() ) {
+			// it means that our `constrained type is an interface and we don't care about super-type bean metadata.
+			// can happen if not a real class is passed for validation but for example a Validator#getConstraintsForClass(Class<?>)
+			// is called
+			hierarchy = Collections.singletonList( constrainedType );
+		}
+
+		List<BeanMetaData<?>> list = new ArrayList<>( hierarchy.size() );
+		for ( int index = hierarchy.size() - 1; index > -1; index-- ) {
+			HibernateConstrainedType<? super T> type = hierarchy.get( index );
+			list.add( 0, beanMetaDataCache.computeIfAbsent(
+					type.getActuallClass(),
+					cType -> findSingleBeanMetaData( constraintCreationContext, executableHelper, parameterNameProvider,
+							validationOrderGenerator, methodValidationConfiguration,
+							metaDataProviders, type, list )
+					)
+			);
+		}
+
+		return (BeanMetaData<T>) list.get( 0 );
+	}
+
+	private static <T> BeanMetaData<T> findSingleBeanMetaData(ConstraintCreationContext constraintCreationContext,
+			ExecutableHelper executableHelper,
+			ExecutableParameterNameProvider parameterNameProvider,
+			ValidationOrderGenerator validationOrderGenerator,
+			MethodValidationConfiguration methodValidationConfiguration,
+			List<MetaDataProvider> metaDataProviders,
+			HibernateConstrainedType<T> constrainedType,
+			List<BeanMetaData<?>> hierarchy) {
 		BeanMetaDataBuilder<T> builder = BeanMetaDataBuilder.getInstance(
 				constraintCreationContext, executableHelper, parameterNameProvider,
 				validationOrderGenerator, constrainedType, methodValidationConfiguration );
@@ -135,8 +166,7 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 				builder.add( beanConfiguration );
 			}
 		}
-
-		return builder.build( beanMetaDataManager );
+		return builder.build( hierarchy );
 	}
 
 	/**

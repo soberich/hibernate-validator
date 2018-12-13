@@ -15,7 +15,6 @@ import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.engine.ConstraintCreationContext;
 import org.hibernate.validator.internal.engine.MethodValidationConfiguration;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
-import org.hibernate.validator.internal.metadata.BeanMetaDataManager;
 import org.hibernate.validator.internal.metadata.raw.BeanConfiguration;
 import org.hibernate.validator.internal.metadata.raw.ConfigurationSource;
 import org.hibernate.validator.internal.metadata.raw.ConstrainedElement;
@@ -128,7 +127,7 @@ public class BeanMetaDataBuilder<T> {
 		);
 	}
 
-	public BeanMetaDataImpl<T> build(BeanMetaDataManager beanMetaDataManager) {
+	public BeanMetaDataImpl<T> build(List<BeanMetaData<?>> beanMetadataHierarchy) {
 		Set<ConstraintMetaData> aggregatedElements = newHashSet();
 
 		for ( BuilderDelegate builder : builders ) {
@@ -136,12 +135,12 @@ public class BeanMetaDataBuilder<T> {
 		}
 
 		return new BeanMetaDataImpl<>(
-				beanMetaDataManager,
 				constrainedType,
 				defaultGroupSequence,
 				defaultGroupSequenceProvider,
 				aggregatedElements,
-				validationOrderGenerator
+				validationOrderGenerator,
+				beanMetadataHierarchy
 		);
 	}
 
