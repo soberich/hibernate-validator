@@ -12,6 +12,7 @@ import java.util.List;
 import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.util.classhierarchy.ClassHierarchyHelper;
 import org.hibernate.validator.internal.util.classhierarchy.Filter;
+import org.hibernate.validator.metadata.BeanMetaDataClassNormalizer;
 
 /**
  * An implementation of {@link HibernateConstrainedType} for regular JavaBeans.
@@ -47,12 +48,16 @@ public class JavaBeanConstrainedType<T> implements HibernateConstrainedType<T> {
 		return clazz.isInterface();
 	}
 
+	public HibernateConstrainedType<T> normalize(BeanMetaDataClassNormalizer normalizer) {
+		return new NormalizedJavaBeanConstrainedType<>( normalizer, clazz );
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if ( this == o ) {
 			return true;
 		}
-		if ( o == null || getClass() != o.getClass() ) {
+		if ( o == null || !( o instanceof JavaBeanConstrainedType ) ) {
 			return false;
 		}
 

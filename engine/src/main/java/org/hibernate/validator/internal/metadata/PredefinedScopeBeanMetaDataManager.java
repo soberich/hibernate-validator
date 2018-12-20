@@ -20,6 +20,7 @@ import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.engine.ConstraintCreationContext;
 import org.hibernate.validator.internal.engine.MethodValidationConfiguration;
 import org.hibernate.validator.internal.engine.constrainedtype.JavaBeanConstrainedType;
+import org.hibernate.validator.internal.engine.constrainedtype.NormalizedJavaBeanConstrainedType;
 import org.hibernate.validator.internal.engine.groups.ValidationOrderGenerator;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaData;
 import org.hibernate.validator.internal.metadata.aggregated.BeanMetaDataBuilder;
@@ -46,7 +47,7 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 	/**
 	 * Used to cache the constraint meta data for validated entities
 	 */
-	private final Map<Class<?>, BeanMetaData<?>> beanMetaDataMap;
+	private final Map<HibernateConstrainedType<?>, BeanMetaData<?>> beanMetaDataMap;
 
 	public PredefinedScopeBeanMetaDataManager(ConstraintCreationContext constraintCreationContext,
 			ExecutableHelper executableHelper,
@@ -72,17 +73,17 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 		metaDataProviders.add( defaultProvider );
 		metaDataProviders.addAll( optionalMetaDataProviders );
 
-		Map<Class<?>, BeanMetaData<?>> tmpBeanMetadataMap = new HashMap<>();
+		Map<HibernateConstrainedType<?>, BeanMetaData<?>> tmpBeanMetadataMap = new HashMap<>();
 
 		for ( Class<?> validatedClass : beanClassesToInitialize ) {
-			JavaBeanConstrainedType constrainedType = new JavaBeanConstrainedType( validatedClass );
+			JavaBeanConstrainedType constrainedType = new NormalizedJavaBeanConstrainedType( beanMetaDataClassNormalizer, beanMetaDataClassNormalizer.normalize( validatedClass ) );
 			BeanMetaData<?> beanMetaData = createBeanMetaData( constraintCreationContext, executableHelper, parameterNameProvider,
 					javaBeanHelper, validationOrderGenerator, methodValidationConfiguration,
 					metaDataProviders, tmpBeanMetadataMap, constrainedType );
 
-			tmpBeanMetadataMap.put( validatedClass, beanMetaData );
+			tmpBeanMetadataMap.put( beanMetaData.getConstrainedType(), beanMetaData );
 			for ( BeanMetaData<?> metaData : beanMetaData.getBeanMetadataHierarchy() ) {
-				tmpBeanMetadataMap.put( metaData.getConstrainedType().getActuallClass(), metaData );
+				tmpBeanMetadataMap.put( metaData.getConstrainedType(), metaData );
 			}
 		}
 
@@ -94,7 +95,11 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> BeanMetaData<T> getBeanMetaData(HibernateConstrainedType<T> constrainedType) {
-		BeanMetaData<T> beanMetaData = (BeanMetaData<T>) beanMetaDataMap.get( beanMetaDataClassNormalizer.normalize( constrainedType.getActuallClass() ) );
+		HibernateConstrainedType<T> key = constrainedType;
+		if ( constrainedType instanceof JavaBeanConstrainedType ) {
+			key = ( (JavaBeanConstrainedType<T>) constrainedType ).normalize( beanMetaDataClassNormalizer );
+		}
+		BeanMetaData<T> beanMetaData = (BeanMetaData<T>) beanMetaDataMap.get( key );
 		if ( beanMetaData == null ) {
 			throw LOG.uninitializedBeanMetaData( constrainedType.getActuallClass() );
 		}
@@ -123,7 +128,7 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 			ValidationOrderGenerator validationOrderGenerator,
 			MethodValidationConfiguration methodValidationConfiguration,
 			List<MetaDataProvider> metaDataProviders,
-			Map<Class<?>, BeanMetaData<?>> beanMetaDataCache,
+			Map<HibernateConstrainedType<?>, BeanMetaData<?>> beanMetaDataCache,
 			HibernateConstrainedType<T> constrainedType) {
 		List<HibernateConstrainedType<? super T>> hierarchy = constrainedType.getHierarchy( Filters.excludeInterfaces() );
 
@@ -138,7 +143,7 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 		for ( int index = hierarchy.size() - 1; index > -1; index-- ) {
 			HibernateConstrainedType<? super T> type = hierarchy.get( index );
 			list.add( 0, beanMetaDataCache.computeIfAbsent(
-					type.getActuallClass(),
+					type,
 					cType -> findSingleBeanMetaData( constraintCreationContext, executableHelper, parameterNameProvider,
 							validationOrderGenerator, methodValidationConfiguration,
 							metaDataProviders, type, list )
