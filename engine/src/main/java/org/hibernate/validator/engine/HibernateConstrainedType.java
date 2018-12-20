@@ -8,8 +8,6 @@ package org.hibernate.validator.engine;
 
 import java.util.List;
 
-import org.hibernate.validator.internal.util.classhierarchy.Filter;
-
 /**
  * An interface that represents a type/class of a bean that will be validated.
  * Based on this type set of constraints will be determined, and applied to the
@@ -25,7 +23,7 @@ public interface HibernateConstrainedType<T> {
 	 */
 	Class<T> getActuallClass();
 
-	List<HibernateConstrainedType<? super T>> getHierarchy(Filter... filters);
+	List<HibernateConstrainedType<? super T>> getHierarchy();
 
 	boolean isInterface();
 }

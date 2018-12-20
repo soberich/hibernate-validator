@@ -33,7 +33,6 @@ import org.hibernate.validator.internal.properties.javabean.JavaBeanHelper;
 import org.hibernate.validator.internal.util.CollectionHelper;
 import org.hibernate.validator.internal.util.ExecutableHelper;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
-import org.hibernate.validator.internal.util.classhierarchy.Filters;
 import org.hibernate.validator.internal.util.logging.Log;
 import org.hibernate.validator.internal.util.logging.LoggerFactory;
 import org.hibernate.validator.metadata.BeanMetaDataClassNormalizer;
@@ -130,7 +129,7 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 			List<MetaDataProvider> metaDataProviders,
 			Map<HibernateConstrainedType<?>, BeanMetaData<?>> beanMetaDataCache,
 			HibernateConstrainedType<T> constrainedType) {
-		List<HibernateConstrainedType<? super T>> hierarchy = constrainedType.getHierarchy( Filters.excludeInterfaces() );
+		List<HibernateConstrainedType<? super T>> hierarchy = constrainedType.getHierarchy();
 
 		if ( hierarchy.isEmpty() ) {
 			// it means that our `constrained type is an interface and we don't care about super-type bean metadata.
@@ -142,6 +141,12 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 		List<BeanMetaData<?>> list = new ArrayList<>( hierarchy.size() );
 		for ( int index = hierarchy.size() - 1; index > -1; index-- ) {
 			HibernateConstrainedType<? super T> type = hierarchy.get( index );
+
+			// we skip interfaces if any occur, unless constrained type is an interface itself...
+			if ( !constrainedType.equals( type ) && type.isInterface() ) {
+				continue;
+			}
+
 			list.add( 0, beanMetaDataCache.computeIfAbsent(
 					type,
 					cType -> findSingleBeanMetaData( constraintCreationContext, executableHelper, parameterNameProvider,
@@ -192,6 +197,7 @@ public class PredefinedScopeBeanMetaDataManager implements BeanMetaDataManager {
 	 *
 	 * @param constrainedType The type of interest.
 	 * @param <T> The type of the class to get the configurations for.
+	 *
 	 * @return A set with the configurations for the complete hierarchy of the given type. May be empty, but never
 	 * {@code null}.
 	 */

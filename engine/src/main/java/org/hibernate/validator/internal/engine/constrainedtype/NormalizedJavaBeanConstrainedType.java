@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.util.classhierarchy.ClassHierarchyHelper;
-import org.hibernate.validator.internal.util.classhierarchy.Filter;
 import org.hibernate.validator.metadata.BeanMetaDataClassNormalizer;
 
 /**
@@ -29,8 +28,8 @@ public class NormalizedJavaBeanConstrainedType<T> extends JavaBeanConstrainedTyp
 	}
 
 	@Override
-	public List<HibernateConstrainedType<? super T>> getHierarchy(Filter... filters) {
-		List<Class<? super T>> hierarchy = ClassHierarchyHelper.getHierarchy( getActuallClass(), filters );
+	public List<HibernateConstrainedType<? super T>> getHierarchy() {
+		List<Class<? super T>> hierarchy = ClassHierarchyHelper.getHierarchy( getActuallClass() );
 		List<HibernateConstrainedType<? super T>> result = new ArrayList<>( hierarchy.size() );
 		//TODO : question - do we actually need to normalize anything here. Wouldn't it be enough to normalize only when
 		// the metadata is retrieved ?

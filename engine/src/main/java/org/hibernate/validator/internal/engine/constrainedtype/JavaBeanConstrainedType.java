@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.hibernate.validator.engine.HibernateConstrainedType;
 import org.hibernate.validator.internal.util.classhierarchy.ClassHierarchyHelper;
-import org.hibernate.validator.internal.util.classhierarchy.Filter;
 import org.hibernate.validator.metadata.BeanMetaDataClassNormalizer;
 
 /**
@@ -34,8 +33,8 @@ public class JavaBeanConstrainedType<T> implements HibernateConstrainedType<T> {
 	}
 
 	@Override
-	public List<HibernateConstrainedType<? super T>> getHierarchy(Filter... filters) {
-		List<Class<? super T>> hierarchy = ClassHierarchyHelper.getHierarchy( clazz, filters );
+	public List<HibernateConstrainedType<? super T>> getHierarchy() {
+		List<Class<? super T>> hierarchy = ClassHierarchyHelper.getHierarchy( clazz );
 		List<HibernateConstrainedType<? super T>> result = new ArrayList<>( hierarchy.size() );
 		for ( Class<? super T> clazzz : hierarchy ) {
 			result.add( new JavaBeanConstrainedType<>( clazzz ) );
@@ -51,6 +50,7 @@ public class JavaBeanConstrainedType<T> implements HibernateConstrainedType<T> {
 	public HibernateConstrainedType<T> normalize(BeanMetaDataClassNormalizer normalizer) {
 		return new NormalizedJavaBeanConstrainedType<>( normalizer, clazz );
 	}
+
 
 	@Override
 	public boolean equals(Object o) {

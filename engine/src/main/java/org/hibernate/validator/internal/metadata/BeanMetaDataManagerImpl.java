@@ -33,7 +33,6 @@ import org.hibernate.validator.internal.util.ConcurrentReferenceHashMap;
 import org.hibernate.validator.internal.util.Contracts;
 import org.hibernate.validator.internal.util.ExecutableHelper;
 import org.hibernate.validator.internal.util.ExecutableParameterNameProvider;
-import org.hibernate.validator.internal.util.classhierarchy.Filters;
 import org.hibernate.validator.internal.util.stereotypes.Immutable;
 
 /**
@@ -172,7 +171,7 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 	 * @return A bean meta data object for the given type.
 	 */
 	private <T> BeanMetaData<T> createBeanMetaData(HibernateConstrainedType<T> constrainedType) {
-		List<HibernateConstrainedType<? super T>> hierarchy = constrainedType.getHierarchy( Filters.excludeInterfaces() );
+		List<HibernateConstrainedType<? super T>> hierarchy = constrainedType.getHierarchy();
 
 		if ( hierarchy.isEmpty() ) {
 			// it means that our `constrained type is an interface and we don't care about super-type bean metadata.
@@ -184,6 +183,10 @@ public class BeanMetaDataManagerImpl implements BeanMetaDataManager {
 		List<BeanMetaData<?>> list = new ArrayList<>( hierarchy.size() );
 		for ( int index = hierarchy.size() - 1; index > -1; index-- ) {
 			HibernateConstrainedType<? super T> type = hierarchy.get( index );
+			// we skip interfaces if any occur, unless constrained type is an interface itself...
+			if ( !constrainedType.equals( type ) && type.isInterface() ) {
+				continue;
+			}
 			list.add( 0, beanMetaDataCache.computeIfAbsent( type, cType -> findSingleBeanMetaData( cType, list ) ) );
 		}
 
